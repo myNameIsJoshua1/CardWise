@@ -29,8 +29,7 @@ QuizWhiz solves these issues by providing a digital platform where students can 
 #### Flashcard & Quiz Management
 * Flashcard Creation & Review: Mobile-friendly interface for studying.
 * Quiz Mode: Take quizzes with instant feedback.
-#### Mobile Notifications
-* Push Notifications: Get reminders for pending quizzes and study sessions.
+
 
 
 ## Links
