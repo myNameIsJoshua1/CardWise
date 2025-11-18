@@ -88,7 +88,7 @@ const LoginPage = ({ setUser: propsSetUser }) => {
             </div>
             
             <div className="text-3xl font-extrabold text-white mb-4">
-              QuizWhiz
+              CardWise
             </div>
             
             <p className="text-lg text-white/80 mb-8">
@@ -207,18 +207,7 @@ const LoginPage = ({ setUser: propsSetUser }) => {
               )}
             </button>
             
-            <div className="relative py-3">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-gray-50 text-gray-500">Or continue with</span>
-              </div>
-            </div>
-            
-            <div className="flex justify-center items-center mt-3">
-              <GoogleLoginButton />
-            </div>
+
           </form>
           
           <div className="mt-8 text-center">

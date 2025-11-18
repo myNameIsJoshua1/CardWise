@@ -43,11 +43,12 @@ const HomePage = () => {
                     Sign in
                   </Link>
                   <Link
-                    to="/register"
-                    className="flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 md:py-4 md:text-lg md:px-10 transition-all duration-200"
-                  >
-                    Sign up
-                  </Link>
+                      to="/register"
+                      className="flex items-center justify-center px-8 py-3 border-transparent text-base font-medium rounded-md text-white bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 md:py-4 md:text-lg md:px-10 transition-all duration-200"
+                    >
+                      Sign up
+                    </Link>
+
                 </div>
               )}
             </div>
@@ -130,10 +131,10 @@ const HomePage = () => {
         <div className="max-w-2xl mx-auto text-center py-16 px-4 sm:py-20 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
             <span className="block">Ready to boost your learning?</span>
-            <span className="block">Start using QuizWhiz today.</span>
+            <span className="block">Start using CardWise today.</span>
           </h2>
           <p className="mt-4 text-lg leading-6 text-white/80">
-            Join thousands of students who are already using QuizWhiz to accelerate their learning and mastery.
+            Join thousands of students who are already using CardWise to accelerate their learning and mastery.
           </p>
           <Link
             to="/register"

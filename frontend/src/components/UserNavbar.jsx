@@ -56,7 +56,7 @@ const UserNavbar = ({ onLogout }) => {
                     <div className="flex items-center">
                         <div className="flex-shrink-0 flex items-center">
                             <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent hover:from-purple-700 hover:to-orange-600 transition-colors">
-                                QuizWhiz
+                                CardWise
                             </Link>
                         </div>
                         
