@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { flashcardService } from '../services/flashcardService';
 import { useUser } from '../contexts/UserContext';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
-import UserNavbar from '../components/UserNavbar';
 
 // Flashcard structure comment
 // { term: string, definition: string }
@@ -215,7 +214,6 @@ const CreateDeck = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <UserNavbar user={user} isLoggedIn={!!user} onLogout={() => {}} />
             
             <div className="max-w-5xl mx-auto p-6">
                 <div className="flex justify-between items-center mb-6">

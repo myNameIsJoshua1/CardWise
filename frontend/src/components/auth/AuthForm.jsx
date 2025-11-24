@@ -5,8 +5,6 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Checkbox } from "../ui/checkbox";
 import { Eye, EyeOff } from "lucide-react";
-import { FaGoogle } from "react-icons/fa";
-import axios from "axios";
 import { userService } from "../../services/userService";
 import api from "../../services/api";
 
@@ -22,79 +20,7 @@ export function AuthForm({ type }) {
   const [lastName, setLastName] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   
-  // Handle Google credential response
-  const handleGoogleCredentialResponse = useCallback(async (response) => {
-    setLoading(true);
-    
-    try {
-      console.log("Google auth successful, credential received");
-      
-      // Extract the credential token from the response
-      const credential = response.credential;
-      
-      // Call backend to verify and create/login user
-      const backendResponse = await userService.loginWithGoogle(credential);
-      
-      if (backendResponse && backendResponse.token) {
-        // Store authentication data
-        localStorage.setItem('token', backendResponse.token);
-        
-        // Store user data
-        const userData = backendResponse.user || {};
-        localStorage.setItem('user', JSON.stringify(userData));
-        
-        console.log("Google login successful, redirecting to dashboard");
-        navigate('/dashboard');
-      } else {
-        console.error("No token returned from server after Google login");
-        throw new Error('Authentication failed. Please try again.');
-      }
-    } catch (error) {
-      console.error("Google login error:", error);
-      alert(`Login failed: ${error.message || 'Unknown error occurred'}`);
-    } finally {
-      setLoading(false);
-    }
-  }, [navigate]);
-  
-  // Google Sign-In
-  useEffect(() => {
-    // Load the Google Identity script
-    const loadGoogleScript = () => {
-      // Only load if not already loaded
-      if (!window.google) {
-        const script = document.createElement('script');
-        script.src = 'https://accounts.google.com/gsi/client';
-        script.async = true;
-        script.defer = true;
-        document.body.appendChild(script);
-        
-        script.onload = initializeGoogleButton;
-      } else {
-        initializeGoogleButton();
-      }
-    };
-
-    const initializeGoogleButton = () => {
-      if (window.google && !document.getElementById('google-signin-script')) {
-        window.google.accounts.id.initialize({
-          client_id: '701720913564-vl09c6bh9jsui1rgcs62pcuja7gbs2n5.apps.googleusercontent.com',
-          callback: handleGoogleCredentialResponse
-        });
-      }
-    };
-
-    loadGoogleScript();
-  }, [handleGoogleCredentialResponse]);
-
-  useEffect(() => {
-    if (window.google && document.getElementById('google-signin-button')) {
-      window.google.accounts.id.renderButton(
-        document.getElementById('google-signin-button'),
-        { theme: 'outline', size: 'large', width: '100%' }
-      );
-    }
-  }, [loading]);
+  // Note: Google/OAuth sign-in removed — only email/password flows are supported now.
 
   const handleLoginWithEmailPassword = async (e) => {
     e.preventDefault();
@@ -157,38 +83,7 @@ export function AuthForm({ type }) {
   return (
     <div className="w-full max-w-md">
       <div className="space-y-4 mb-6">
-        {/* Social Login Button */}
-        {loading ? (
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full py-2 flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700"
-            disabled
-          >
-            <div className="flex items-center">
-              <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <span>Connecting...</span>
-            </div>
-          </Button>
-        ) : (
-          <div id="google-signin-button" className="w-full"></div>
-        )}
-        
-        {/* Fallback button if Google button doesn't load */}
-        {!window.google && !loading && (
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full py-2 flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
-            onClick={() => alert("Google Sign-In is currently unavailable. Please try again later.")}
-          >
-            <FaGoogle className="text-red-500" />
-            <span>{type === "login" ? "Continue with Google" : "Sign up with Google"}</span>
-          </Button>
-        )}
+        {/* Social login removed — email/password only */}
       </div>
       
       {/* Divider */}
