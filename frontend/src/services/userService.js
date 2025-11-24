@@ -197,31 +197,7 @@ export const userService = {
   },
 
   loginWithGoogle: async (credential) => {
-    try {
-      console.log("Sending Google credential token to backend");
-      const response = await api.post('/user/google', { credential });
-      
-      // Extract data and token
-      const data = response.data;
-      const token = data.token;
-      
-      if (!token) {
-        throw new Error('No authentication token received from server');
-      }
-      
-      return {
-        token: token,
-        user: data.user || {
-          userId: data.user?.userId,
-          email: data.user?.email,
-          firstName: data.user?.firstName || data.user?.name?.split(' ')[0] || '',
-          lastName: data.user?.lastName || (data.user?.name ? data.user.name.split(' ').slice(1).join(' ') : ''),
-        }
-      };
-    } catch (error) {
-      console.error('Google login error:', error);
-      throw error;
-    }
+    throw new Error('Google login has been disabled. Use email/password instead.');
   },
 
   getUserCount: async () => {
