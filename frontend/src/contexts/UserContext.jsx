@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { userService } from '../services/userService';
+import api from '../services/api';
 
 // Create context with default values to prevent undefined errors
 const UserContext = createContext({
@@ -43,6 +44,24 @@ export const UserProvider = ({ children }) => {
                 return basicUserData; // Fall back to basic data
             }
         };
+
+        const validateSession = async () => {
+            try {
+                console.log('Validating session with server...');
+                const response = await api.get('/session/validate');
+                if (response.data && response.data.valid) {
+                    console.log('Session is valid:', response.data);
+                    return true;
+                }
+                // If validation returns false, still trust localStorage if we have a token or user
+                return false;
+            } catch (error) {
+                console.log('Session validation failed (non-critical):', error.message);
+                // Don't sign out on validation failure - session validation is optional
+                // The token/JWT will handle authentication if needed
+                return true; // Return true to allow localStorage data to persist
+            }
+        };
         
         const initializeUser = async () => {
             try {
@@ -50,13 +69,38 @@ export const UserProvider = ({ children }) => {
                 if (storedUser) {
                     const parsedUser = JSON.parse(storedUser);
                     
-                    // Set initial user state
-                    setUser(parsedUser);
+                    // Check if we have a token (JWT) or stored user data
+                    const hasToken = !!localStorage.getItem('token');
                     
-                    // Fetch complete profile if we have a token
-                    if (localStorage.getItem('token')) {
-                        const completeUserData = await fetchCompleteUserProfile(parsedUser);
-                        setUser(completeUserData);
+                    // If we have a token, trust it and don't validate with server
+                    if (hasToken) {
+                        console.log('JWT token found, restoring user without server validation');
+                        setUser(parsedUser);
+                    } else {
+                        // Only validate session if we don't have a JWT token
+                        console.log('No JWT token found, validating session with server...');
+                        const isSessionValid = await validateSession();
+                        
+                        if (!isSessionValid) {
+                            console.log('Session validation failed, clearing user data');
+                            localStorage.removeItem('user');
+                            localStorage.removeItem('token');
+                            setUser(null);
+                        } else {
+                            // Set initial user state
+                            setUser(parsedUser);
+                        }
+                    }
+                    
+                    // Optionally fetch complete profile if we have a user ID
+                    const userId = parsedUser.id || parsedUser.userId;
+                    if (userId && hasToken) {
+                        try {
+                            const completeUserData = await fetchCompleteUserProfile(parsedUser);
+                            setUser(completeUserData);
+                        } catch (profileError) {
+                            console.log('Profile fetch optional - using stored data');
+                        }
                     }
                 } else {
                     setUser(null);

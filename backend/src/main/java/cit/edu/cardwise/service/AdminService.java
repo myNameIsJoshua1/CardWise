@@ -50,4 +50,15 @@ public class AdminService {
     public void deleteAdmin(String id) {
         adminRepository.deleteById(id);
     }
+
+    public Optional<AdminEntity> loginAdmin(String email, String password) {
+        Optional<AdminEntity> adminOpt = adminRepository.findByEmail(email);
+        if (adminOpt.isPresent()) {
+            AdminEntity admin = adminOpt.get();
+            if (admin.getPassword() != null && passwordEncoder.matches(password, admin.getPassword())) {
+                return Optional.of(admin);
+            }
+        }
+        return Optional.empty();
+    }
 }

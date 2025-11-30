@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import api from '../services/api';
 
 const AdminLoginForm = ({ onLogin }) => {
     const [email, setEmail] = useState('');
@@ -12,11 +13,32 @@ const AdminLoginForm = ({ onLogin }) => {
         setIsLoading(true);
 
         try {
-            console.log('Submitting admin login form:', { email, password }); // Debug input
-            await onLogin(email, password);
+            console.log('Submitting admin login form:', { email, password });
+            
+            // Try session-based login first
+            const sessionResponse = await api.post('/session/login', {
+                email: email,
+                password: password,
+                role: 'admin'
+            });
+
+            if (sessionResponse && sessionResponse.data) {
+                console.log('Admin session login successful');
+                await onLogin(email, password);
+            } else {
+                throw new Error('Invalid server response');
+            }
         } catch (err) {
-            console.error('Admin login form error:', err); // Debug error
-            setError(err.message || 'Invalid email or password');
+            console.error('Admin login form error:', err);
+            
+            // Fallback to JWT-based login
+            try {
+                console.log('Attempting JWT fallback for admin login');
+                await onLogin(email, password);
+            } catch (jwtError) {
+                console.error('Admin JWT login also failed:', jwtError);
+                setError(jwtError.message || 'Invalid email or password');
+            }
         } finally {
             setIsLoading(false);
         }

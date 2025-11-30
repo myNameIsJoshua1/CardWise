@@ -256,24 +256,8 @@ const StudyDeck = () => {
         return flashcards[currentIndex] || null;
     }, [flashcards, currentIndex]);
 
-    // Determine animation classes based on optimization settings
-    const getAnimationClasses = useMemo(() => {
-        const baseClass = "absolute w-full h-full backface-hidden";
-        
-        // If animations are enabled, use the full transition effects
-        if (optimizationSettings.useAnimations) {
-            return {
-                frontSide: `${baseClass} transition-all duration-500 ${flipped ? 'opacity-0 rotate-y-180' : 'opacity-100'}`,
-                backSide: `${baseClass} transition-all duration-500 ${flipped ? 'opacity-100' : 'opacity-0 rotate-y-180'}`
-            };
-        }
-        
-        // Otherwise use simplified transitions with no rotation animations
-        return {
-            frontSide: `${baseClass} ${flipped ? 'hidden' : 'block'}`,
-            backSide: `${baseClass} ${flipped ? 'block' : 'hidden'}`
-        };
-    }, [flipped, optimizationSettings.useAnimations]);
+    // Card flip animation is now handled with simple show/hide display classes
+    // This ensures better cross-browser compatibility and reliability
 
     if (loading) {
         return (
@@ -329,9 +313,9 @@ const StudyDeck = () => {
     }
 
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className={`bg-white rounded-lg w-full max-w-md mx-4 overflow-hidden ${optimizationSettings.useShadowEffects ? 'shadow-xl' : 'border border-gray-300'}`}>
-                <div className="p-4 flex justify-between items-center bg-gradient-to-r from-purple-600 to-orange-500">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className={`bg-white rounded-lg w-full max-w-md h-5/6 flex flex-col ${optimizationSettings.useShadowEffects ? 'shadow-xl' : 'border border-gray-300'}`}>
+                <div className="p-4 flex justify-between items-center bg-gradient-to-r from-purple-600 to-orange-500 flex-shrink-0">
                     <h3 className="text-lg font-bold text-white">{deckTitle} - Study Mode</h3>
                     <button 
                         className="text-white hover:text-gray-200 transition-colors"
@@ -344,7 +328,7 @@ const StudyDeck = () => {
                 </div>
                 
                 {/* Progress indicator */}
-                <div className="px-5 pt-3">
+                <div className="px-5 pt-3 pb-2 flex-shrink-0">
                     <div className="flex justify-between text-xs text-gray-600 mb-1">
                         <span>Progress: {cardsLearned}/{flashcards.length} cards learned</span>
                         <span>{progressPercentage}%</span>
@@ -357,100 +341,74 @@ const StudyDeck = () => {
                     </div>
                 </div>
                 
-                {/* Flashcard */}
-                <div className="p-5">
+                {/* Flashcard - Takes up all remaining space */}
+                <div className="flex-1 flex flex-col p-5 overflow-hidden">
                     <div 
-                        className="h-64 w-full cursor-pointer relative rounded-lg overflow-hidden"
+                        className="flex-1 cursor-pointer relative rounded-lg overflow-hidden"
                         onClick={toggleFlip}
                     >
                         <div 
-                            className={getAnimationClasses.frontSide}
-                            style={{
-                                backfaceVisibility: "hidden",
-                                transform: flipped && optimizationSettings.useAnimations ? "rotateY(180deg)" : "rotateY(0deg)",
-                                transformStyle: optimizationSettings.useAnimations ? "preserve-3d" : "flat",
-                            }}
+                            className={`${flipped ? 'hidden' : 'block'} w-full h-full`}
                         >
-                            <div className={`bg-gradient-to-br from-purple-100 to-purple-50 rounded-lg flex flex-col items-center justify-center p-6 text-center h-full border border-purple-200 ${optimizationSettings.useShadowEffects ? 'shadow-inner' : ''}`}>
-                                <h4 className="text-purple-800 text-xl font-medium mb-4">{currentFlashcard.term}</h4>
-                                <div className="mt-auto">
-                                    <p className="text-purple-600 text-sm flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-                                        </svg>
-                                        Click to see answer
-                                    </p>
-                                </div>
+                            <div className={`bg-gradient-to-br from-purple-100 to-purple-50 rounded-lg flex flex-col items-center justify-center p-6 text-center w-full h-full border border-purple-200 ${optimizationSettings.useShadowEffects ? 'shadow-inner' : ''}`}>
+                                <h4 className="text-purple-800 text-2xl font-medium break-words">{currentFlashcard.question || currentFlashcard.term || 'Question'}</h4>
                             </div>
                         </div>
                         
                         <div 
-                            className={getAnimationClasses.backSide}
-                            style={{
-                                backfaceVisibility: "hidden",
-                                transform: flipped && optimizationSettings.useAnimations ? "rotateY(0deg)" : "rotateY(-180deg)",
-                                transformStyle: optimizationSettings.useAnimations ? "preserve-3d" : "flat"
-                            }}
+                            className={`${flipped ? 'block' : 'hidden'} w-full h-full`}
                         >
-                            <div className={`bg-gradient-to-br from-orange-100 to-yellow-50 rounded-lg flex flex-col items-center justify-center p-6 text-center h-full border border-orange-200 ${optimizationSettings.useShadowEffects ? 'shadow-inner' : ''}`}>
-                                <p className="text-gray-800 text-lg">{currentFlashcard.definition}</p>
-                                <div className="mt-auto">
-                                    <p className="text-orange-600 text-sm flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-                                        </svg>
-                                        Click to see question
-                                    </p>
-                                </div>
+                            <div className={`bg-gradient-to-br from-orange-100 to-yellow-50 rounded-lg flex flex-col items-center justify-center p-6 text-center w-full h-full border border-orange-200 ${optimizationSettings.useShadowEffects ? 'shadow-inner' : ''}`}>
+                                <p className="text-gray-800 text-xl break-words">{currentFlashcard.answer || currentFlashcard.definition || 'Answer'}</p>
                             </div>
                         </div>
                     </div>
-                    
-                    {/* Card status */}
-                    <div className="flex justify-center mt-3">
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            currentFlashcard.learned 
-                                ? 'bg-green-100 text-green-800 border border-green-200' 
-                                : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
-                        }`}>
-                            {currentFlashcard.learned ? 'Learned' : 'Learning'}
-                        </span>
-                    </div>
-                    
-                    {/* Navigation controls */}
-                    <div className="flex justify-between mt-5">
-                        <div className="flex items-center">
-                            <button 
-                                className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center hover:bg-purple-200 transition-colors text-purple-700"
-                                onClick={handlePrevious}
-                            >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                </svg>
-                            </button>
-                            <span className="text-gray-700 mx-4 font-medium">{currentIndex + 1} / {flashcards.length}</span>
-                            <button 
-                                className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center hover:bg-purple-200 transition-colors text-purple-700"
-                                onClick={handleNext}
-                            >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                </svg>
-                            </button>
-                        </div>
-                        
+                </div>
+                
+                {/* Card status */}
+                <div className="flex justify-center py-2 flex-shrink-0">
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        currentFlashcard.learned 
+                            ? 'bg-green-100 text-green-800 border border-green-200' 
+                            : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                    }`}>
+                        {currentFlashcard.learned ? 'Learned' : 'Learning'}
+                    </span>
+                </div>
+                
+                {/* Navigation controls */}
+                <div className="px-5 pb-5 flex justify-between gap-4 flex-shrink-0">
+                    <div className="flex items-center gap-2">
                         <button 
-                            className={`px-4 py-2 rounded-md font-medium ${
-                                currentFlashcard.learned
-                                ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-                                : 'bg-green-500 text-white hover:bg-green-600 transition-colors'
-                            }`}
-                            onClick={handleMarkLearned}
-                            disabled={currentFlashcard.learned}
+                            className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center hover:bg-purple-200 transition-colors text-purple-700"
+                            onClick={handlePrevious}
                         >
-                            {currentFlashcard.learned ? 'Already Learned' : 'Mark as Learned'}
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+                        <span className="text-gray-700 font-medium text-sm">{currentIndex + 1} / {flashcards.length}</span>
+                        <button 
+                            className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center hover:bg-purple-200 transition-colors text-purple-700"
+                            onClick={handleNext}
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
                         </button>
                     </div>
+                    
+                    <button 
+                        className={`px-4 py-2 rounded-md font-medium text-sm ${
+                            currentFlashcard.learned
+                            ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                            : 'bg-green-500 text-white hover:bg-green-600 transition-colors'
+                        }`}
+                        onClick={handleMarkLearned}
+                        disabled={currentFlashcard.learned}
+                    >
+                        {currentFlashcard.learned ? 'Already Learned' : 'Mark as Learned'}
+                    </button>
                 </div>
             </div>
         </div>

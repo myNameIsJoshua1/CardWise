@@ -87,61 +87,95 @@ export function LoginForm({ setIsLoggedIn, setUser }) {
     }
 
     try {
-      // First authenticate with email/password
-      const response = await userService.login(email, password);
-      
-      if (response && response.token) {
-        // Store basic auth data first
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('user', JSON.stringify(response));
-        
+      // Attempt session-based login first
+      console.log('Attempting session-based login...');
+      const sessionResponse = await api.post('/session/login', {
+        email: email,
+        password: password,
+        role: 'user'
+      });
+
+      if (sessionResponse && sessionResponse.data) {
+        const userData = sessionResponse.data;
+        console.log('Session login successful:', userData);
+
+        // Store user data (session is handled by cookies with withCredentials)
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+
         try {
-          // DIRECT APPROACH: Make a direct API call to get user data
-          const userId = response.id || response.userId;
-          console.log("Fetching complete user profile with userId:", userId);
-          
+          // Fetch complete user profile if userId is available
+          const userId = userData.id || userData.userId;
           if (userId) {
-            // Make direct API call instead of using the service
+            console.log('Fetching complete user profile with userId:', userId);
             const profileResponse = await api.get(`/user/${userId}`);
-            console.log("Raw API response:", profileResponse);
-            
+
             if (profileResponse.data) {
               const fullUserData = profileResponse.data;
-              console.log("Full user profile data:", fullUserData);
-              
-              // Add token to the complete data
-              fullUserData.token = response.token;
-              
-              // Update localStorage and context with complete data
-              console.log("Updating user context with complete data:", fullUserData);
+              console.log('Full user profile data:', fullUserData);
+
+              // Update localStorage with complete data
               localStorage.setItem('user', JSON.stringify(fullUserData));
               setUser(fullUserData);
-            } else {
-              console.warn("API returned empty data for user profile");
-              setUser(response);
             }
-          } else {
-            console.warn("No userId available for profile fetch");
-            setUser(response);
           }
         } catch (profileError) {
-          console.error("Failed to fetch complete profile:", profileError);
-          // Fall back to basic data
-          setUser(response);
+          console.error('Failed to fetch complete profile:', profileError);
+          // Fall back to basic session data
         }
-        
+
         setIsLoggedIn(true);
-        
+
         // Clear any existing admin data
         localStorage.removeItem('admin');
-        
+
         // Navigate to dashboard
         navigate('/dashboard');
       } else {
         setError('Invalid server response. Please try again.');
       }
-    } catch (err) {
-      handleError(err);
+    } catch (sessionError) {
+      console.error('Session login failed, attempting JWT fallback:', sessionError);
+
+      // Fallback to JWT authentication if session login fails
+      try {
+        const jwtResponse = await userService.login(email, password);
+
+        if (jwtResponse && jwtResponse.token) {
+          // Store JWT auth data
+          localStorage.setItem('token', jwtResponse.token);
+          localStorage.setItem('user', JSON.stringify(jwtResponse));
+
+          try {
+            // Fetch complete user profile
+            const userId = jwtResponse.id || jwtResponse.userId;
+            if (userId) {
+              const profileResponse = await api.get(`/user/${userId}`);
+
+              if (profileResponse.data) {
+                const fullUserData = profileResponse.data;
+                fullUserData.token = jwtResponse.token;
+
+                localStorage.setItem('user', JSON.stringify(fullUserData));
+                setUser(fullUserData);
+              }
+            } else {
+              setUser(jwtResponse);
+            }
+          } catch (profileError) {
+            console.error('Failed to fetch complete profile:', profileError);
+            setUser(jwtResponse);
+          }
+
+          setIsLoggedIn(true);
+          localStorage.removeItem('admin');
+          navigate('/dashboard');
+        } else {
+          setError('Invalid server response. Please try again.');
+        }
+      } catch (jwtError) {
+        handleError(jwtError);
+      }
     } finally {
       setLoading(false);
     }

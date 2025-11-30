@@ -39,17 +39,25 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .sessionFixation().migrateSession()
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(false)
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/").permitAll() // Add this line
+                        .requestMatchers(HttpMethod.GET, "/").permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/user/login",
                                 "/admin/login",
                                 "/user/google",
                                 "/user/create",
-                                "/oauth/**"
+                                "/oauth/**",
+                                "/session/login",
+                                "/session/logout"
                         ).permitAll()
+                        .requestMatchers("/session/validate").permitAll()
                         .requestMatchers("/user/**","/deck/**").authenticated()
                         .anyRequest().authenticated()
 

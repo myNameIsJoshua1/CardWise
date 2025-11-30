@@ -10,18 +10,18 @@ const api = axios.create({
     'Accept': 'application/json',
   },
   timeout: 10000, // Add timeout of 10 seconds
-  withCredentials: false // Set to false as we're using Bearer token
+  withCredentials: true // Enable credentials for session-based auth
 });
 
-// Request interceptor for adding auth token
+// Request interceptor for adding auth token or session
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('API Request: Adding token to request headers');
+      console.log('API Request: Adding JWT token to request headers');
     } else {
-      console.warn('API Request: No token found in localStorage');
+      console.warn('API Request: No JWT token found in localStorage, using session-based auth');
     }
     return config;
   },
@@ -57,6 +57,9 @@ api.interceptors.response.use(
           break;
         case 401:
           console.warn('Unauthorized. Your session may have expired.');
+          // Clear session and token
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
           break;
         case 404:
           console.warn('Resource not found:', originalRequest?.url);
