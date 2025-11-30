@@ -54,7 +54,7 @@ const LoginPage = ({ setUser: propsSetUser }) => {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       setUser(null);
-      setError(err.response?.data?.message || err.message || 'Invalid email or password');
+      setError(err.response?.data?.message ||  'Invalid email or password' );
     } finally {
       setLoading(false);
     }
