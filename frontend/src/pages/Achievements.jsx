@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { achievementService } from '../services/achievementService';
 import { useUser } from '../contexts/UserContext';
 
+
 const Achievements = () => {
   const navigate = useNavigate();
   const { user } = useUser();
@@ -10,30 +11,40 @@ const Achievements = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (!user) {
-      const storedUser = localStorage.getItem('user');
-      if (!storedUser) {
-        navigate('/login');
-        return;
-      }
-    }
 
+  useEffect(() => {
     const fetchAchievements = async () => {
       try {
         setLoading(true);
         
-        // Attempt to get achievements from backend
-        let userAchievements = [];
-        try {
-          const userId = user?.id || JSON.parse(localStorage.getItem('user'))?.id;
-          userAchievements = await achievementService.getUserAchievements(userId);
-        } catch (error) {
-          console.error('Error fetching achievements from API:', error);
-          // Fall back to local achievements data
-          const userId = user?.id || JSON.parse(localStorage.getItem('user'))?.id;
-          userAchievements = achievementService.getLocalAchievements(userId);
+        // Get user ID from context or localStorage
+        let userId = user?.id || user?.userId;
+        
+        if (!userId) {
+          const storedUser = localStorage.getItem('user');
+          if (storedUser) {
+            try {
+              const userData = JSON.parse(storedUser);
+              userId = userData.id || userData.userId;
+            } catch (err) {
+              console.error('Failed to parse stored user:', err);
+            }
+          }
         }
+        
+        if (!userId) {
+          console.error('No user ID found');
+          setError('User ID not found. Please log in again.');
+          setLoading(false);
+          return;
+        }
+        
+        console.log('Fetching achievements for userId:', userId);
+        
+        // Get all achievements with unlock status
+        const userAchievements = await achievementService.getAchievementsWithStatus(userId);
+        
+        console.log('Fetched achievements:', userAchievements);
         
         // Sort achievements by unlocked status and date (newest first)
         userAchievements.sort((a, b) => {
@@ -53,14 +64,14 @@ const Achievements = () => {
         setAchievements(userAchievements);
       } catch (error) {
         console.error('Error fetching achievements:', error);
-        setError('Failed to load achievements. Please try again later.');
+        setError('Failed to load achievements. Please try again later. Error: ' + error.message);
       } finally {
         setLoading(false);
       }
     };
     
     fetchAchievements();
-  }, [user, navigate]);
+  }, [user]);
   
   // Format date to a readable format
   const formatDate = (dateString) => {
@@ -110,24 +121,21 @@ const Achievements = () => {
     );
   }
 
+
   return (
     <div className="max-w-4xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Your Achievements</h1>
       
       {achievements.length === 0 ? (
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
-          <h2 className="text-xl font-semibold mb-2">No Achievements Yet</h2>
-          <p className="text-gray-600 mb-4">
-            Complete quizzes and study decks to unlock achievements!
-          </p>
+          <div className="text-lg text-gray-600 mb-4">
+            Loading achievements...
+          </div>
           <button 
-            onClick={() => navigate('/decks')}
+            onClick={() => navigate('/dashboard')}
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
-            Browse Decks
+            Back to Dashboard
           </button>
         </div>
       ) : (
@@ -135,31 +143,29 @@ const Achievements = () => {
           {achievements.map((achievement, index) => (
             <div 
               key={index} 
-              className={`bg-white rounded-lg shadow-md p-4 border-l-4 ${
-                achievement.unlocked ? 'border-green-500' : 'border-gray-300'
+              className={`bg-white rounded-lg shadow-md p-4 border-l-4 transition-all ${
+                achievement.unlocked 
+                  ? 'border-green-500 hover:shadow-lg' 
+                  : 'border-gray-300 opacity-75'
               }`}
             >
               <div className="flex items-start">
-                <div className={`rounded-full p-2 mr-3 ${
-                  achievement.unlocked ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+                <div className={`text-3xl mr-3 ${
+                  achievement.unlocked ? 'grayscale-0' : 'grayscale opacity-50'
                 }`}>
-                  {achievement.unlocked ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                  )}
+                  {achievement.icon || '🏆'}
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-lg">{achievement.title}</h3>
-                  <p className="text-gray-600 text-sm mb-2">{achievement.description}</p>
-                  <p className={`text-xs ${achievement.unlocked ? 'text-green-600' : 'text-gray-400'}`}>
+                  <h3 className={`font-semibold text-lg ${achievement.unlocked ? 'text-gray-900' : 'text-gray-500'}`}>
+                    {achievement.title}
+                  </h3>
+                  <p className={`text-sm mb-2 ${achievement.unlocked ? 'text-gray-600' : 'text-gray-400'}`}>
+                    {achievement.description}
+                  </p>
+                  <p className={`text-xs ${achievement.unlocked ? 'text-green-600 font-medium' : 'text-gray-400'}`}>
                     {achievement.unlocked 
-                      ? `Unlocked: ${formatDate(achievement.unlockedAt)}` 
-                      : 'Locked'}
+                      ? `✓ Unlocked: ${formatDate(achievement.unlockedAt)}` 
+                      : '🔒 Locked'}
                   </p>
                 </div>
               </div>
@@ -171,4 +177,5 @@ const Achievements = () => {
   );
 };
 
-export default Achievements; 
+
+export default Achievements;

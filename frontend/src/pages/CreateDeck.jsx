@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { flashcardService } from '../services/flashcardService';
+import { achievementService } from '../services/achievementService';
 import { useUser } from '../contexts/UserContext';
+import { useToast } from '../hooks/use-toast';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
+
 
 // Flashcard structure comment
 // { term: string, definition: string }
@@ -10,10 +13,12 @@ import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card'
 const CreateDeck = () => {
     const navigate = useNavigate();
     const { user: contextUser } = useUser();
+    const { toast } = useToast();
     const [user, setUser] = useState(contextUser);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+
 
     // Initialize deck data with empty flashcards
     const [deckData, setDeckData] = useState({
@@ -25,6 +30,7 @@ const CreateDeck = () => {
             { term: '', definition: '' }
         ]
     });
+
 
     // Ensure we have user data - fallback to localStorage if needed
     useEffect(() => {
@@ -45,6 +51,7 @@ const CreateDeck = () => {
         }
     }, [contextUser]);
 
+
     // Verify authentication on component mount
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -62,6 +69,7 @@ const CreateDeck = () => {
         }
     }, [navigate, user]);
 
+
     // Handle input change for deck information
     const handleDeckChange = (e) => {
         const { name, value } = e.target;
@@ -70,6 +78,7 @@ const CreateDeck = () => {
             [name]: value
         }));
     };
+
 
     // Handle flashcard changes
     const handleFlashcardChange = (index, field, value) => {
@@ -84,6 +93,7 @@ const CreateDeck = () => {
         }));
     };
 
+
     // Add a new empty flashcard
     const addFlashcard = () => {
         setDeckData(prev => ({
@@ -92,12 +102,14 @@ const CreateDeck = () => {
         }));
     };
 
+
     // Remove a flashcard
     const removeFlashcard = (index) => {
         if (deckData.flashcards.length <= 1) {
             setError('You need at least one flashcard');
             return;
         }
+
 
         const updatedFlashcards = deckData.flashcards.filter((_, i) => i !== index);
         setDeckData(prev => ({
@@ -106,6 +118,7 @@ const CreateDeck = () => {
         }));
     };
 
+
     // Submit the deck with flashcards
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -113,20 +126,24 @@ const CreateDeck = () => {
         setError('');
         setSuccess('');
 
+
         try {
             // Validate deck data
             if (!deckData.title.trim()) {
                 throw new Error('Title is required');
             }
 
+
             // Validate flashcards - filter valid ones
             const validFlashcards = deckData.flashcards.filter(card => 
                 card.term.trim() && card.definition.trim()
             );
 
+
             if (validFlashcards.length === 0) {
                 throw new Error('Please create at least one flashcard with both question and answer');
             }
+
 
             // Get user ID - try multiple sources
             let userId;
@@ -145,9 +162,11 @@ const CreateDeck = () => {
                 }
             }
 
+
             if (!userId) {
                 throw new Error('You need to be logged in to create a deck');
             }
+
 
             console.log('Creating deck for user ID:', userId);
             
@@ -157,6 +176,7 @@ const CreateDeck = () => {
             if (!token) {
                 throw new Error('Authentication token not found. Please log in again.');
             }
+
 
             // Create the deck with minimum required fields matching your Spring backend
             const deckPayload = {
@@ -173,6 +193,7 @@ const CreateDeck = () => {
             const newDeck = await flashcardService.createDeck(deckPayload);
             console.log('Created new deck:', newDeck);
 
+
             // Create flashcards for the deck
             const flashcardPromises = validFlashcards.map(card => 
                 flashcardService.createFlashcard({
@@ -184,7 +205,75 @@ const CreateDeck = () => {
                 })
             );
 
+
             await Promise.all(flashcardPromises);
+            
+            // Check and unlock deck creation achievements
+            // FIXED: Removed duplicate userId declaration
+            if (userId) {
+                try {
+                    // Get total deck count for the user
+                    const allDecks = await flashcardService.getDecks();
+                    const userDecks = allDecks.filter(deck => 
+                        (deck.userId === userId || deck.userId === user.id) && deck.id !== newDeck.id
+                    );
+                    const totalDecksAfterCreation = userDecks.length + 1;
+                    
+                    // 5 Decks Created Achievement
+                    if (totalDecksAfterCreation >= 5) {
+                        await achievementService.unlockAchievement(
+                            userId,
+                            '5 Notes Achievement',
+                            'Created 5 flashcard decks'
+                        ).then(() => {
+                            toast({
+                              title: '📚 Achievement Unlocked!',
+                              description: '5 Notes Achievement - You\'ve created 5 decks!',
+                              duration: 5000,
+                            });
+                        }).catch(err => {
+                            console.log('Achievement unlock optional:', err.message);
+                            achievementService.saveAchievementsLocally(userId, {
+                                title: '5 Notes Achievement',
+                                description: 'Created 5 flashcard decks'
+                            });
+                            toast({
+                              title: '📚 Achievement Unlocked!',
+                              description: '5 Notes Achievement - You\'ve created 5 decks!',
+                              duration: 5000,
+                            });
+                        });
+                    }
+                    
+                    // 10 Decks Created Achievement
+                    if (totalDecksAfterCreation >= 10) {
+                        await achievementService.unlockAchievement(
+                            userId,
+                            '10 Notes Achievement',
+                            'Created 10 flashcard decks'
+                        ).then(() => {
+                            toast({
+                              title: '🌟 Achievement Unlocked!',
+                              description: '10 Notes Achievement - You\'ve created 10 decks!',
+                              duration: 5000,
+                            });
+                        }).catch(err => {
+                            console.log('Achievement unlock optional:', err.message);
+                            achievementService.saveAchievementsLocally(userId, {
+                                title: '10 Notes Achievement',
+                                description: 'Created 10 flashcard decks'
+                            });
+                            toast({
+                              title: '🌟 Achievement Unlocked!',
+                              description: '10 Notes Achievement - You\'ve created 10 decks!',
+                              duration: 5000,
+                            });
+                        });
+                    }
+                } catch (err) {
+                    console.log('Achievement check optional:', err.message);
+                }
+            }
             
             setSuccess('Your flashcard deck has been created successfully!');
             
@@ -208,9 +297,11 @@ const CreateDeck = () => {
         }
     };
 
+
     const handleCancel = () => {
         navigate('/dashboard');
     };
+
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -220,17 +311,20 @@ const CreateDeck = () => {
                     <h1 className="text-2xl font-bold">Create New Flashcard Deck</h1>
                 </div>
 
+
                 {error && (
                     <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                         {error}
                     </div>
                 )}
 
+
                 {success && (
                     <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
                         {success}
                     </div>
                 )}
+
 
                 <form onSubmit={handleSubmit} className="space-y-8">
                     {/* Deck Information Card */}
@@ -294,6 +388,7 @@ const CreateDeck = () => {
                         </CardContent>
                     </Card>
 
+
                     {/* Flashcards Editor Card */}
                     <Card>
                         <CardHeader>
@@ -341,6 +436,7 @@ const CreateDeck = () => {
                                 </div>
                             ))}
 
+
                             <button
                                 type="button"
                                 onClick={addFlashcard}
@@ -350,6 +446,7 @@ const CreateDeck = () => {
                             </button>
                         </CardContent>
                     </Card>
+
 
                     <div className="flex justify-between pt-4">
                         <button
@@ -373,4 +470,5 @@ const CreateDeck = () => {
     );
 };
 
-export default CreateDeck; 
+
+export default CreateDeck;

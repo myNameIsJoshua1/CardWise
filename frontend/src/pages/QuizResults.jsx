@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { flashcardService } from '../services/flashcardService';
+import { achievementService } from '../services/achievementService';
 import { useOptimization } from '../components/PerformanceMonitor';
-import { startMeasurement, endMeasurement } from '../utils/performance';
+import { useUser } from '../contexts/UserContext';
+import { useToast } from '../hooks/use-toast';
 
 const QuizResults = () => {
   const { deckId } = useParams();
   const navigate = useNavigate();
+  const { user } = useUser();
+  const { toast } = useToast();
   const [results, setResults] = useState(null);
   const [deckTitle, setDeckTitle] = useState('');
   const [loading, setLoading] = useState(true);
@@ -19,9 +23,6 @@ const QuizResults = () => {
 
   // Load quiz results
   useEffect(() => {
-    // Start performance measurement
-    startMeasurement('quiz-results-load');
-    
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -51,13 +52,83 @@ const QuizResults = () => {
           setTimeout(() => setShowCelebration(true), 500);
           setTimeout(() => setShowCelebration(false), 3500);
         }
+        
+        // Check for "Learning Begins" achievement (first quiz completed)
+        if (user) {
+          const userId = user.id || user.userId;
+          if (userId) {
+            try {
+              // Try to unlock "Learning Begins" achievement
+              await achievementService.unlockAchievement(
+                userId,
+                'Learning Begins',
+                'Complete your first quiz'
+              ).then(() => {
+                // Show success toast notification
+                toast({
+                  title: '📖 Achievement Unlocked!',
+                  description: 'Learning Begins - You completed your first quiz!',
+                  duration: 5000,
+                });
+              }).catch(err => {
+                console.log('Achievement unlock optional:', err.message);
+                // Try to save locally
+                achievementService.saveAchievementsLocally(userId, {
+                  title: 'Learning Begins',
+                  description: 'Complete your first quiz'
+                });
+                // Show fallback notification
+                toast({
+                  title: '📖 Achievement Unlocked!',
+                  description: 'Learning Begins - You completed your first quiz!',
+                  duration: 5000,
+                });
+              });
+            } catch (err) {
+              console.log('Learning Begins achievement optional:', err.message);
+            }
+          }
+        }
+        
+        // Check for perfect score achievement
+        if (quizResults.score === 100 && user) {
+          const userId = user.id || user.userId;
+          if (userId) {
+            try {
+              await achievementService.unlockAchievement(
+                userId,
+                'First Perfect Score',
+                'Achieved a perfect score (100%) on a quiz'
+              ).then(() => {
+                // Show success toast notification
+                toast({
+                  title: '🏆 Achievement Unlocked!',
+                  description: 'First Perfect Score - You achieved 100% on this quiz!',
+                  duration: 5000,
+                });
+              }).catch(err => {
+                console.log('Achievement unlock optional:', err.message);
+                achievementService.saveAchievementsLocally(userId, {
+                  title: 'First Perfect Score',
+                  description: 'Achieved a perfect score (100%) on a quiz'
+                });
+                // Show fallback notification
+                toast({
+                  title: '🏆 Achievement Unlocked!',
+                  description: 'First Perfect Score - You achieved 100% on this quiz!',
+                  duration: 5000,
+                });
+              });
+            } catch (err) {
+              console.log('Perfect score achievement optional:', err.message);
+            }
+          }
+        }
       } catch (error) {
         console.error('Error loading quiz results:', error);
         setError('Failed to load quiz results.');
       } finally {
         setLoading(false);
-        // End performance measurement
-        endMeasurement('quiz-results-load');
       }
     };
     
