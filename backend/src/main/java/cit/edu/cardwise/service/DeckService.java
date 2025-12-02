@@ -32,7 +32,7 @@ public class DeckService {
         DeckEntity saved = deckRepository.save(deck);
 
         if (isFirstDeck) {
-            achievementService.unlockAchievement(deck.getUserId(), "Deck Creator", "Create your first deck");
+            achievementService.unlockAchievement(deck.getUserId(), "First Deck Creator", "Created your first flashcard deck!");
         }
 
         return saved;

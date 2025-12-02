@@ -3,7 +3,6 @@ import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-
 import { Toaster } from './ui/toaster';
 import UserProfile from './profile/UserProfile';
 import { QuizCard } from './quiz/QuizCard';
-import { ProgressStats } from './progress/ProgressStats';
 import AdminDashboard from '../pages/AdminDashboard';
 import AdminLoginPage from '../pages/AdminLoginPage';
 import ManageUsers from '../pages/ManageUsers';
@@ -25,6 +24,7 @@ import StudyDeck from '../pages/StudyDeck';
 import QuizMode from '../pages/QuizMode';
 import QuizResults from '../pages/QuizResults';
 import Achievements from '../pages/Achievements';
+import ProgressStats from '../pages/ProgressStats';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import HomePage from '../pages/HomePage';

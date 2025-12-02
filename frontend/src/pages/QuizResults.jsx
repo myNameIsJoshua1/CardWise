@@ -1,27 +1,28 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { flashcardService } from '../services/flashcardService';
+import { achievementService } from '../services/achievementService';
+import { useUser } from '../contexts/UserContext';
+import AchievementNotification from '../components/AchievementNotification';
 import { useOptimization } from '../components/PerformanceMonitor';
-import { startMeasurement, endMeasurement } from '../utils/performance';
 
 const QuizResults = () => {
   const { deckId } = useParams();
   const navigate = useNavigate();
+  const { user } = useUser();
   const [results, setResults] = useState(null);
   const [deckTitle, setDeckTitle] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
   const [showCelebration, setShowCelebration] = useState(false);
+  const [achievement, setAchievement] = useState(null);
   
   // Get optimization settings
   const optimizationSettings = useOptimization();
 
   // Load quiz results
   useEffect(() => {
-    // Start performance measurement
-    startMeasurement('quiz-results-load');
-    
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -51,13 +52,69 @@ const QuizResults = () => {
           setTimeout(() => setShowCelebration(true), 500);
           setTimeout(() => setShowCelebration(false), 3500);
         }
+        
+        // Check for perfect score achievement (100%)
+        if (quizResults.score === 100) {
+          const userData = user || JSON.parse(localStorage.getItem('user'));
+          const userId = userData?.id || userData?.userId;
+          
+          if (userId) {
+            const perfectScoreAchievement = {
+              title: 'Perfect Score',
+              description: 'Achieved a perfect score on a quiz'
+            };
+            
+            // Always save to localStorage
+            achievementService.saveAchievementsLocally(userId, perfectScoreAchievement);
+            
+            // Also try to unlock via backend
+            try {
+              await achievementService.unlockAchievement(
+                userId,
+                perfectScoreAchievement.title,
+                perfectScoreAchievement.description
+              );
+            } catch (err) {
+              console.log('Backend achievement unlock failed, using localStorage:', err);
+            }
+            
+            setAchievement(perfectScoreAchievement);
+          }
+        }
+        
+        // Check for zero score achievement (0%)
+        if (quizResults.score === 0) {
+          const userData = user || JSON.parse(localStorage.getItem('user'));
+          const userId = userData?.id || userData?.userId;
+          
+          if (userId) {
+            const zeroScoreAchievement = {
+              title: 'Learning Journey',
+              description: 'Get 0% on a quiz'
+            };
+            
+            // Always save to localStorage
+            achievementService.saveAchievementsLocally(userId, zeroScoreAchievement);
+            
+            // Also try to unlock via backend
+            try {
+              await achievementService.unlockAchievement(
+                userId,
+                zeroScoreAchievement.title,
+                zeroScoreAchievement.description
+              );
+            } catch (err) {
+              console.log('Backend achievement unlock failed, using localStorage:', err);
+            }
+            
+            setAchievement(zeroScoreAchievement);
+          }
+        }
       } catch (error) {
         console.error('Error loading quiz results:', error);
         setError('Failed to load quiz results.');
       } finally {
         setLoading(false);
-        // End performance measurement
-        endMeasurement('quiz-results-load');
       }
     };
     
@@ -193,6 +250,14 @@ const QuizResults = () => {
   
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
+      {/* Achievement Notification */}
+      {achievement && (
+        <AchievementNotification 
+          achievement={achievement}
+          onClose={() => setAchievement(null)}
+        />
+      )}
+      
       {/* Celebration animation */}
       {showCelebration && optimizationSettings.useAnimations && (
         <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
