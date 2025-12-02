@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { flashcardService } from '../services/flashcardService';
+import { achievementService } from '../services/achievementService';
 import { useUser } from '../contexts/UserContext';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
+import AchievementNotification from '../components/AchievementNotification';
 
 // Flashcard structure comment
 // { term: string, definition: string }
@@ -14,6 +16,7 @@ const CreateDeck = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [achievement, setAchievement] = useState(null);
 
     // Initialize deck data with empty flashcards
     const [deckData, setDeckData] = useState({
@@ -188,6 +191,62 @@ const CreateDeck = () => {
             
             setSuccess('Your flashcard deck has been created successfully!');
             
+            // Check if this is a deck milestone achievement
+            try {
+              const userDecks = await flashcardService.getDecksByUserId(userId);
+              console.log('User decks:', userDecks);
+              
+              if (userDecks) {
+                const deckCount = userDecks.length;
+                let achievement = null;
+                
+                // Check for first deck
+                if (deckCount === 1) {
+                  achievement = {
+                    title: 'First Deck Creator',
+                    description: 'Created your first flashcard deck!'
+                  };
+                }
+                // Check for 5 decks achievement
+                else if (deckCount === 5) {
+                  achievement = {
+                    title: 'Deck Builder',
+                    description: 'Create 5 flashcard decks'
+                  };
+                }
+                // Check for 10 decks achievement
+                else if (deckCount === 10) {
+                  achievement = {
+                    title: 'Master Creator',
+                    description: 'Create 10 flashcard decks'
+                  };
+                }
+                
+                if (achievement) {
+                  console.log('Unlocking achievement for userId:', userId);
+                  
+                  // Always save to localStorage
+                  const savedResult = achievementService.saveAchievementsLocally(userId, achievement);
+                  console.log('Achievement saved locally:', savedResult);
+                  
+                  // Also try to unlock via backend
+                  try {
+                    await achievementService.unlockAchievement(
+                      userId,
+                      achievement.title,
+                      achievement.description
+                    );
+                  } catch (err) {
+                    console.log('Backend achievement unlock failed, using localStorage:', err);
+                  }
+                  
+                  setAchievement(achievement);
+                }
+              }
+            } catch (err) {
+              console.error('Error checking deck count for achievement:', err);
+            }
+            
             // Navigate to the new deck after a short delay
             setTimeout(() => {
                 navigate(`/decks/${newDeck.id}`);
@@ -214,6 +273,13 @@ const CreateDeck = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
+            
+            {achievement && (
+                <AchievementNotification 
+                    achievement={achievement}
+                    onClose={() => setAchievement(null)}
+                />
+            )}
             
             <div className="max-w-5xl mx-auto p-6">
                 <div className="flex justify-between items-center mb-6">
