@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { flashcardService } from '../services/flashcardService';
 import { useUser } from '../contexts/UserContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 const DecksList = () => {
     const navigate = useNavigate();
     const { user } = useUser();
+    const { styles } = useTheme();
     const [decks, setDecks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -67,7 +69,7 @@ const DecksList = () => {
     }
 
     return (
-        <div className="container mx-auto p-6">
+        <div className={`container mx-auto p-6 ${styles.background}`}>
             {/* Page header with colorful background */}
             <div className="mb-8 bg-gradient-to-tr from-purple-800 via-orange-500 to-yellow-400 rounded-lg p-6 shadow-md">
                 <div className="flex justify-between items-center">

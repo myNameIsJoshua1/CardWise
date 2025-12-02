@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { useUser } from '../contexts/UserContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { flashcardService } from '../services/flashcardService';
 import { reviewService } from '../services/reviewService';
 import api from '../services/api';
@@ -38,6 +39,7 @@ const formatTimeAgo = (date) => {
 const UserDashboard = () => {
     // Use the user context initially
     const { user: contextUser, setUser: updateUserContext } = useUser();
+    const { styles } = useTheme();
     
     // Local state for the user data
     const [user, setLocalUser] = useState(contextUser);
@@ -351,7 +353,7 @@ const UserDashboard = () => {
             <div className="container mx-auto px-4 py-8">
                 <div className="flex flex-col items-center justify-center h-64">
                     <div className="w-12 h-12 border-t-4 border-b-4 border-purple-500 rounded-full animate-spin mb-4"></div>
-                    <p className="text-gray-500">Loading your dashboard data...</p>
+                    <p className={`${styles.textSecondary}`}>Loading your dashboard data...</p>
                 </div>
             </div>
         );
@@ -362,11 +364,11 @@ const UserDashboard = () => {
         return (
             <div className="container mx-auto px-4 py-8">
                 <div className="flex flex-col items-center justify-center h-64">
-                    <p className="text-gray-500">
-                        {localStorage.getItem('token') 
-                            ? "Having trouble loading your data. Please try refreshing the page." 
-                            : "No authentication data found. Please log in again."}
-                    </p>
+                        <p className={`${styles.textSecondary}`}>
+                            {localStorage.getItem('token')
+                                ? "Having trouble loading your data. Please try refreshing the page."
+                                : "No authentication data found. Please log in again."}
+                        </p>
                     {!localStorage.getItem('token') && (
                         <Link to="/login" className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
                             Go to Login
@@ -378,19 +380,19 @@ const UserDashboard = () => {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className={`${styles.background} container mx-auto px-4 py-8`}>
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className={`text-3xl font-bold ${styles.text}`}>
                     Welcome back, {user.firstName || user.email?.split('@')[0] || 'User'}!
                 </h1>
-                <p className="text-gray-600 mt-2">Let's continue your learning journey</p>
+                <p className={`${styles.textSecondary} mt-2`}>Let's continue your learning journey</p>
             </div>
 
             {/* Stats Overview */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <Card className="bg-white border border-gray-200 shadow-sm">
+                <Card className={`${styles.card} ${styles.border} shadow-sm`}>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-lg font-medium text-gray-700">Total Decks</CardTitle>
+                        <CardTitle className={`text-lg font-medium ${styles.textSecondary}`}>Total Decks</CardTitle>
                     </CardHeader>
                     <CardContent>
                         {statsLoading ? (
@@ -425,9 +427,9 @@ const UserDashboard = () => {
                     </CardContent>
                 </Card>
 
-                <Card className="bg-white border border-gray-200 shadow-sm">
+                <Card className={`${styles.card} ${styles.border} shadow-sm`}>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-lg font-medium text-gray-700">Cards Studied</CardTitle>
+                        <CardTitle className={`text-lg font-medium ${styles.textSecondary}`}>Cards Studied</CardTitle>
                     </CardHeader>
                     <CardContent>
                         {cardsLoading ? (
@@ -462,9 +464,9 @@ const UserDashboard = () => {
                     </CardContent>
                 </Card>
 
-                <Card className="bg-white border border-gray-200 shadow-sm">
+                <Card className={`${styles.card} ${styles.border} shadow-sm`}>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-lg font-medium text-gray-700">Success Rate</CardTitle>
+                        <CardTitle className={`text-lg font-medium ${styles.textSecondary}`}>Success Rate</CardTitle>
                     </CardHeader>
                     <CardContent>
                         {statsLoading ? (
@@ -506,7 +508,7 @@ const UserDashboard = () => {
                 {/* Recent Decks */}
                 <div className="lg:col-span-2">
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-bold text-gray-800">Your Decks</h2>
+                        <h2 className={`text-xl font-bold ${styles.text}`}>Your Decks</h2>
                         <Link
                             to="/decks/new"
                             className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 shadow-sm hover:shadow transition-all duration-200"
@@ -536,7 +538,7 @@ const UserDashboard = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                                 </svg>
                             </div>
-                            <p className="text-gray-500 mb-4">You don't have any flashcard decks yet</p>
+                            <p className={`${styles.textSecondary} mb-4`}>You don't have any flashcard decks yet</p>
                             <Link
                                 to="/decks/new"
                                 className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200"
@@ -547,12 +549,12 @@ const UserDashboard = () => {
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {decks.slice(0, 4).map((deck) => (
-                                <Card key={deck.id} className="bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                                <Card key={deck.id} className={`${styles.card} ${styles.border} shadow-sm hover:shadow-md transition-shadow`}>
                                     <CardHeader className="pb-2">
-                                        <CardTitle className="text-lg font-medium text-gray-800">{deck.title || deck.subject}</CardTitle>
+                                        <CardTitle className={`text-lg font-medium ${styles.text}`}>{deck.title || deck.subject}</CardTitle>
                                     </CardHeader>
                                     <CardContent>
-                                        <p className="text-sm text-gray-500 mb-4">
+                                        <p className={`text-sm ${styles.textMuted} mb-4`}>
                                             {deck.description || deck.category || 'General'}
                                         </p>
                                         <div className="flex space-x-2">
@@ -598,8 +600,8 @@ const UserDashboard = () => {
 
                 {/* Recent Activity */}
                 <div>
-                    <h2 className="text-xl font-bold text-gray-800 mb-4">Recent Activity</h2>
-                    <Card className="bg-white border border-gray-200 shadow-sm">
+                    <h2 className={`text-xl font-bold ${styles.text} mb-4`}>Recent Activity</h2>
+                    <Card className={`${styles.card} ${styles.border} shadow-sm`}>
                         <CardContent className="pt-6">
                             {activityLoading ? (
                                 <div className="flex justify-center py-8">
@@ -611,15 +613,15 @@ const UserDashboard = () => {
                             ) : stats.recentActivity && stats.recentActivity.length > 0 ? (
                                 <ul className="space-y-3">
                                     {stats.recentActivity.map((activity, index) => (
-                                        <li key={index} className="pb-3 border-b border-gray-100 last:border-0 last:pb-0">
-                                            <p className="text-sm text-gray-600">{activity}</p>
+                                        <li key={index} className={`pb-3 ${styles.border} last:border-0 last:pb-0`}>
+                                            <p className={`text-sm ${styles.textSecondary}`}>{activity}</p>
                                         </li>
                                     ))}
                                 </ul>
                             ) : (
                                 <div className="text-center py-6">
-                                    <p className="text-gray-500 mb-2">No recent activity</p>
-                                    <p className="text-sm text-gray-400">Your study sessions will appear here</p>
+                                        <p className={`${styles.textSecondary} mb-2`}>No recent activity</p>
+                                        <p className={`text-sm ${styles.textMuted}`}>Your study sessions will appear here</p>
                                 </div>
                             )}
                         </CardContent>

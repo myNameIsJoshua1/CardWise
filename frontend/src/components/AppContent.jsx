@@ -16,6 +16,7 @@ import AdminLayout from './AdminLayout';
 import UserNavbar from './UserNavbar';
 import { PrivateRoute, AdminRoute } from './RouteGuards';
 import { useUser } from '../contexts/UserContext';
+import { ThemeProvider } from '../contexts/ThemeContext';
 import '../styles/App.css';
 import CreateDeck from '../pages/CreateDeck';
 import DecksList from '../pages/DecksList';
@@ -149,208 +150,213 @@ function AppContent() {
     const isAdminRoute = location.pathname.startsWith('/admin');
 
     return (
-        <div className="App">
-            {/* Only show navbar for routes that aren't auth pages or admin routes */}
-            {!isAdminRoute && !location.pathname.includes('/login') && !location.pathname.includes('/register') && location.pathname !== '/' && (
-                <UserNavbar onLogout={handleLogout} />
-            )}
+        <ThemeProvider>
+            <div className="App">
+                {/* Only show navbar for routes that aren't auth pages or admin routes */}
+                {!isAdminRoute && !location.pathname.includes('/login') && !location.pathname.includes('/register') && location.pathname !== '/' && (
+                    <UserNavbar onLogout={handleLogout} />
+                )}
 
-            <main className={
-                isAdminRoute ? "w-full p-0 m-0" : 
-                location.pathname.includes('/login') || location.pathname.includes('/register') || location.pathname === '/' ? "p-0 m-0 w-full" :
-                "max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8"
-            }>
-                <Routes>
-                    {/* Public Routes */}
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/login" element={<LoginPage setUser={handleUserLogin} />} />
-                    <Route path="/register" element={<RegisterPage />} />
-                    <Route path="/forgot-password" element={<ForgotPassword />} />
-                    <Route path="/admin/login" element={<AdminLoginPage setIsLoggedIn={setIsAdminLoggedIn} setAdmin={setAdmin} />} />
+                <main className={
+                    isAdminRoute ? "w-full p-0 m-0" :
+                    location.pathname.includes('/login') || location.pathname.includes('/register') || location.pathname === '/' ? "p-0 m-0 w-full" :
+                    "max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 min-h-screen"
+                } style={{
+                    backgroundColor: isAdminRoute || location.pathname.includes('/login') || location.pathname.includes('/register') || location.pathname === '/' ?
+                        'inherit' : 'var(--bg-color)'
+                }}>
+                    <Routes>
+                        {/* Public Routes */}
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/login" element={<LoginPage setUser={handleUserLogin} />} />
+                        <Route path="/register" element={<RegisterPage />} />
+                        <Route path="/forgot-password" element={<ForgotPassword />} />
+                        <Route path="/admin/login" element={<AdminLoginPage setIsLoggedIn={setIsAdminLoggedIn} setAdmin={setAdmin} />} />
 
-                    {/* Protected User Routes */}
-                    <Route
-                        path="/dashboard"
-                        element={
-                            <PrivateRoute>
-                                <UserDashboard />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/profile"
-                        element={
-                            <PrivateRoute>
-                                <UserProfile user={user} />
-                            </PrivateRoute>
-                        }
-                    />
-                    {/* Edit Profile route temporarily removed due to authentication issues with password nullification */}
-                    <Route
-                        path="/profile/change-password"
-                        element={
-                            <PrivateRoute>
-                                <ChangePassword />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/decks"
-                        element={
-                            <PrivateRoute>
-                                <DecksList />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/decks/new"
-                        element={
-                            <PrivateRoute>
-                                <CreateDeck />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/decks/:deckId"
-                        element={
-                            <PrivateRoute>
-                                <DeckFlashcards user={user} />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/decks/:deckId/edit"
-                        element={
-                            <PrivateRoute>
-                                <EditDeck />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/study/:deckId"
-                        element={
-                            <PrivateRoute>
-                                <StudyDeck />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/quiz/:deckId"
-                        element={
-                            <PrivateRoute>
-                                <QuizMode />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/quiz-results/:deckId"
-                        element={
-                            <PrivateRoute>
-                                <QuizResults />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/quiz/:quizId"
-                        element={
-                            <PrivateRoute>
-                                <QuizCard user={user} />
-                            </PrivateRoute>
-                        }
-                    />
-                    <Route
-                        path="/progress"
-                        element={
-                            <PrivateRoute>
-                                <ProgressStats user={user} />
-                            </PrivateRoute>
-                        }
-                    />
-                    
-                    <Route
-                        path="/achievements"
-                        element={
-                            <PrivateRoute>
-                                <Achievements />
-                            </PrivateRoute>
-                        }
-                    />
+                        {/* Protected User Routes */}
+                        <Route
+                            path="/dashboard"
+                            element={
+                                <PrivateRoute>
+                                    <UserDashboard />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/profile"
+                            element={
+                                <PrivateRoute>
+                                    <UserProfile user={user} />
+                                </PrivateRoute>
+                            }
+                        />
+                        {/* Edit Profile route temporarily removed due to authentication issues with password nullification */}
+                        <Route
+                            path="/profile/change-password"
+                            element={
+                                <PrivateRoute>
+                                    <ChangePassword />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/decks"
+                            element={
+                                <PrivateRoute>
+                                    <DecksList />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/decks/new"
+                            element={
+                                <PrivateRoute>
+                                    <CreateDeck />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/decks/:deckId"
+                            element={
+                                <PrivateRoute>
+                                    <DeckFlashcards user={user} />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/decks/:deckId/edit"
+                            element={
+                                <PrivateRoute>
+                                    <EditDeck />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/study/:deckId"
+                            element={
+                                <PrivateRoute>
+                                    <StudyDeck />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/quiz/:deckId"
+                            element={
+                                <PrivateRoute>
+                                    <QuizMode />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/quiz-results/:deckId"
+                            element={
+                                <PrivateRoute>
+                                    <QuizResults />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/quiz/:quizId"
+                            element={
+                                <PrivateRoute>
+                                    <QuizCard user={user} />
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/progress"
+                            element={
+                                <PrivateRoute>
+                                    <ProgressStats user={user} />
+                                </PrivateRoute>
+                            }
+                        />
 
-                    {/* Protected Admin Routes */}
-                    <Route
-                        path="/admin"
-                        element={
-                            <AdminRoute>
-                                <AdminLayout admin={admin} onLogout={handleLogout}>
-                                    <AdminDashboard admin={admin} />
-                                </AdminLayout>
-                            </AdminRoute>
-                        }
-                    />
-                    <Route
-                        path="/admin/users"
-                        element={
-                            <AdminRoute>
-                                <AdminLayout admin={admin} onLogout={handleLogout}>
-                                    <ManageUsers />
-                                </AdminLayout>
-                            </AdminRoute>
-                        }
-                    />
-                    <Route
-                        path="/admin/users/:userId"
-                        element={
-                            <AdminRoute>
-                                <AdminLayout admin={admin} onLogout={handleLogout}>
-                                    <UserDetails />
-                                </AdminLayout>
-                            </AdminRoute>
-                        }
-                    />
-                    <Route
-                        path="/admin/users/:userId/edit"
-                        element={
-                            <AdminRoute>
-                                <AdminLayout admin={admin} onLogout={handleLogout}>
-                                    <EditUser />
-                                </AdminLayout>
-                            </AdminRoute>
-                        }
-                    />
-                    <Route
-                        path="/admin/decks"
-                        element={
-                            <AdminRoute>
-                                <AdminLayout admin={admin} onLogout={handleLogout}>
-                                    <ManageDecks />
-                                </AdminLayout>
-                            </AdminRoute>
-                        }
-                    />
-                    <Route
-                        path="/admin/profile"
-                        element={
-                            <AdminRoute>
-                                <AdminLayout admin={admin} onLogout={handleLogout}>
-                                    <AdminProfilePage admin={admin} />
-                                </AdminLayout>
-                            </AdminRoute>
-                        }
-                    />
+                        <Route
+                            path="/achievements"
+                            element={
+                                <PrivateRoute>
+                                    <Achievements />
+                                </PrivateRoute>
+                            }
+                        />
 
-                    {/* Redirect to home page instead of login page by default */}
-                    <Route
-                        path="*"
-                        element={
-                            isAdminLoggedIn ? <Navigate to="/admin" replace /> : 
-                            isLoggedIn ? <Navigate to="/dashboard" replace /> : 
-                            <Navigate to="/" replace />
-                        }
-                    />
-                </Routes>
-            </main>
-            <Toaster />
-        </div>
+                        {/* Protected Admin Routes */}
+                        <Route
+                            path="/admin"
+                            element={
+                                <AdminRoute>
+                                    <AdminLayout admin={admin} onLogout={handleLogout}>
+                                        <AdminDashboard admin={admin} />
+                                    </AdminLayout>
+                                </AdminRoute>
+                            }
+                        />
+                        <Route
+                            path="/admin/users"
+                            element={
+                                <AdminRoute>
+                                    <AdminLayout admin={admin} onLogout={handleLogout}>
+                                        <ManageUsers />
+                                    </AdminLayout>
+                                </AdminRoute>
+                            }
+                        />
+                        <Route
+                            path="/admin/users/:userId"
+                            element={
+                                <AdminRoute>
+                                    <AdminLayout admin={admin} onLogout={handleLogout}>
+                                        <UserDetails />
+                                    </AdminLayout>
+                                </AdminRoute>
+                            }
+                        />
+                        <Route
+                            path="/admin/users/:userId/edit"
+                            element={
+                                <AdminRoute>
+                                    <AdminLayout admin={admin} onLogout={handleLogout}>
+                                        <EditUser />
+                                    </AdminLayout>
+                                </AdminRoute>
+                            }
+                        />
+                        <Route
+                            path="/admin/decks"
+                            element={
+                                <AdminRoute>
+                                    <AdminLayout admin={admin} onLogout={handleLogout}>
+                                        <ManageDecks />
+                                    </AdminLayout>
+                                </AdminRoute>
+                            }
+                        />
+                        <Route
+                            path="/admin/profile"
+                            element={
+                                <AdminRoute>
+                                    <AdminLayout admin={admin} onLogout={handleLogout}>
+                                        <AdminProfilePage admin={admin} />
+                                    </AdminLayout>
+                                </AdminRoute>
+                            }
+                        />
+
+                        {/* Redirect to home page instead of login page by default */}
+                        <Route
+                            path="*"
+                            element={
+                                isAdminLoggedIn ? <Navigate to="/admin" replace /> :
+                                isLoggedIn ? <Navigate to="/dashboard" replace /> :
+                                <Navigate to="/" replace />
+                            }
+                        />
+                    </Routes>
+                </main>
+                <Toaster />
+            </div>
+        </ThemeProvider>
     );
 }
 

@@ -6,6 +6,7 @@ import { reviewService } from '../services/reviewService';
 import { progressService } from '../services/progressService';
 import { achievementService } from '../services/achievementService';
 import { useUser } from '../contexts/UserContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 // Define question type interface
 const QUESTION_TYPES = {
@@ -18,6 +19,7 @@ const QuizMode = () => {
   const { deckId } = useParams();
   const navigate = useNavigate();
   const { user: contextUser } = useUser();
+  const { styles } = useTheme();
   const [user, setUser] = useState(contextUser);
   
   // Quiz state
@@ -704,8 +706,8 @@ const QuizMode = () => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-full max-w-2xl mx-4 overflow-hidden shadow-xl">
+    <div className={`fixed inset-0 ${styles.modalBackdrop} backdrop-blur-sm flex items-center justify-center z-50`}>
+      <div className={`${styles.modal} rounded-lg w-full max-w-2xl mx-4 overflow-hidden shadow-xl`}>
         {/* Quiz header */}
         <div className="p-4 flex justify-between items-center bg-gradient-to-r from-purple-600 to-orange-500">
           <h3 className="text-lg font-bold text-white">{title} - Quiz</h3>

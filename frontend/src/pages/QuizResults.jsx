@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { flashcardService } from '../services/flashcardService';
 import { achievementService } from '../services/achievementService';
 import { useUser } from '../contexts/UserContext';
+import { useTheme } from '../contexts/ThemeContext';
 import AchievementNotification from '../components/AchievementNotification';
 import { useOptimization } from '../components/PerformanceMonitor';
 
@@ -10,6 +11,7 @@ const QuizResults = () => {
   const { deckId } = useParams();
   const navigate = useNavigate();
   const { user } = useUser();
+  const { styles } = useTheme();
   const [results, setResults] = useState(null);
   const [deckTitle, setDeckTitle] = useState('');
   const [loading, setLoading] = useState(true);
@@ -17,7 +19,7 @@ const QuizResults = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [showCelebration, setShowCelebration] = useState(false);
   const [achievement, setAchievement] = useState(null);
-  
+
   // Get optimization settings
   const optimizationSettings = useOptimization();
 
@@ -249,7 +251,7 @@ const QuizResults = () => {
   const grade = getGrade(results.score);
   
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className={`min-h-screen ${styles.backgroundSecondary} py-8 px-4`}>
       {/* Achievement Notification */}
       {achievement && (
         <AchievementNotification 
@@ -278,7 +280,7 @@ const QuizResults = () => {
       )}
       
       <div className="max-w-3xl mx-auto">
-        <div className={`bg-white rounded-xl ${optimizationSettings.useShadowEffects ? 'shadow-xl' : 'border border-gray-200'} overflow-hidden`}>
+        <div className={`${styles.card} rounded-xl ${optimizationSettings.useShadowEffects ? 'shadow-xl' : styles.border} overflow-hidden`}>
           {/* Header */}
           <div className="bg-gradient-to-r from-purple-600 to-orange-500 text-white p-8">
             <h1 className="text-3xl font-bold mb-2">Quiz Results</h1>

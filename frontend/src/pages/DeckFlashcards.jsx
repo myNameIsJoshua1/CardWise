@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { flashcardService } from '../services/flashcardService';
+import { useUser } from '../contexts/UserContext';
+import { useTheme } from '../contexts/ThemeContext';
 
-const DeckFlashcards = () => {
+const DeckFlashcards = ({ user }) => {
     const { deckId } = useParams();
     const navigate = useNavigate();
+    const { styles } = useTheme();
     const [flashcards, setFlashcards] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -185,7 +188,7 @@ const DeckFlashcards = () => {
             </div>
             
             {flashcards.length === 0 ? (
-                <div className="text-center py-16 bg-gray-50 rounded-lg shadow-inner">
+                <div className={`text-center py-16 ${styles.backgroundSecondary} rounded-lg shadow-inner`}>
                     <div className="max-w-md mx-auto">
                         <div className="mb-6 w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">

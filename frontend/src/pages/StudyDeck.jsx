@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { flashcardService } from '../services/flashcardService';
 import { useUser } from '../contexts/UserContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { achievementService } from '../services/achievementService';
 import { useOptimization } from '../components/PerformanceMonitor';
 
@@ -9,11 +10,12 @@ const StudyDeck = () => {
     const { deckId } = useParams();
     const navigate = useNavigate();
     const { user } = useUser();
+    const { styles } = useTheme();
     const [flashcards, setFlashcards] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [deckTitle, setDeckTitle] = useState('');
-    
+
     // Get optimization settings
     const optimizationSettings = useOptimization();
     
@@ -285,8 +287,8 @@ const StudyDeck = () => {
 
     if (error) {
         return (
-            <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
-                <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+            <div className="flex flex-col items-center justify-center h-screen" style={{ backgroundColor: 'var(--bg-color)' }}>
+                <div className={`p-8 rounded-lg shadow-md max-w-md w-full`} style={{ backgroundColor: 'var(--bg-secondary-color)' }}>
                     <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                         {error}
                     </div>
@@ -304,8 +306,8 @@ const StudyDeck = () => {
 
     if (flashcards.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
-                <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+            <div className="flex flex-col items-center justify-center h-screen" style={{ backgroundColor: 'var(--bg-color)' }}>
+                <div className={`p-8 rounded-lg shadow-md max-w-md w-full text-center`} style={{ backgroundColor: 'var(--bg-secondary-color)' }}>
                     <div className="mb-6 w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
@@ -329,8 +331,8 @@ const StudyDeck = () => {
     }
 
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className={`bg-white rounded-lg w-full max-w-md mx-4 overflow-hidden ${optimizationSettings.useShadowEffects ? 'shadow-xl' : 'border border-gray-300'}`}>
+        <div className={`fixed inset-0 ${styles.modalBackdrop} backdrop-blur-sm flex items-center justify-center z-50`}>
+            <div className={`${styles.modal} rounded-lg w-full max-w-md mx-4 overflow-hidden ${optimizationSettings.useShadowEffects ? 'shadow-xl' : styles.border}`}>
                 <div className="p-4 flex justify-between items-center bg-gradient-to-r from-purple-600 to-orange-500">
                     <h3 className="text-lg font-bold text-white">{deckTitle} - Study Mode</h3>
                     <button 

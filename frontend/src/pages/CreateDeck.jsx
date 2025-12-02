@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { flashcardService } from '../services/flashcardService';
 import { achievementService } from '../services/achievementService';
 import { useUser } from '../contexts/UserContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import AchievementNotification from '../components/AchievementNotification';
 
@@ -12,6 +13,7 @@ import AchievementNotification from '../components/AchievementNotification';
 const CreateDeck = () => {
     const navigate = useNavigate();
     const { user: contextUser } = useUser();
+    const { styles } = useTheme();
     const [user, setUser] = useState(contextUser);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
@@ -272,7 +274,7 @@ const CreateDeck = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className={`min-h-screen ${styles.backgroundSecondary}`}>
             
             {achievement && (
                 <AchievementNotification 
@@ -283,7 +285,7 @@ const CreateDeck = () => {
             
             <div className="max-w-5xl mx-auto p-6">
                 <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold">Create New Flashcard Deck</h1>
+                    <h1 className={`text-2xl font-bold ${styles.text}`}>Create New Flashcard Deck</h1>
                 </div>
 
                 {error && (
@@ -306,7 +308,7 @@ const CreateDeck = () => {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div>
-                                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+                                <label htmlFor="title" className={`block text-sm font-medium ${styles.textSecondary} mb-1`}>
                                     Title <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -315,14 +317,14 @@ const CreateDeck = () => {
                                     name="title"
                                     value={deckData.title}
                                     onChange={handleDeckChange}
-                                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                    className={`${styles.input} w-full px-4 py-2 rounded-md focus:ring-purple-500 focus:border-purple-500`}
                                     placeholder="Enter deck title"
                                     required
                                 />
                             </div>
-                            
+
                             <div>
-                                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                                <label htmlFor="description" className={`block text-sm font-medium ${styles.textSecondary} mb-1`}>
                                     Description
                                 </label>
                                 <textarea
@@ -331,13 +333,13 @@ const CreateDeck = () => {
                                     value={deckData.description}
                                     onChange={handleDeckChange}
                                     rows="3"
-                                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                    className={`${styles.input} w-full px-4 py-2 rounded-md focus:ring-purple-500 focus:border-purple-500`}
                                     placeholder="Describe what this deck is about"
                                 ></textarea>
                             </div>
-                            
+
                             <div>
-                                <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+                                <label htmlFor="category" className={`block text-sm font-medium ${styles.textSecondary} mb-1`}>
                                     Category
                                 </label>
                                 <select
@@ -345,7 +347,7 @@ const CreateDeck = () => {
                                     name="category"
                                     value={deckData.category}
                                     onChange={handleDeckChange}
-                                    className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                    className={`${styles.input} w-full px-4 py-2 rounded-md focus:ring-purple-500 focus:border-purple-500`}
                                 >
                                     <option value="">Select a category</option>
                                     <option value="Language">Language</option>
@@ -380,25 +382,25 @@ const CreateDeck = () => {
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className={`block text-sm font-medium ${styles.textSecondary} mb-1`}>
                                                 Question
                                             </label>
                                             <input
                                                 type="text"
                                                 value={flashcard.term}
                                                 onChange={(e) => handleFlashcardChange(index, 'term', e.target.value)}
-                                                className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                                className={`${styles.input} w-full px-4 py-2 rounded-md focus:ring-purple-500 focus:border-purple-500`}
                                                 placeholder="Enter question"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className={`block text-sm font-medium ${styles.textSecondary} mb-1`}>
                                                 Answer
                                             </label>
                                             <textarea
                                                 value={flashcard.definition}
                                                 onChange={(e) => handleFlashcardChange(index, 'definition', e.target.value)}
-                                                className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                                className={`${styles.input} w-full px-4 py-2 rounded-md focus:ring-purple-500 focus:border-purple-500`}
                                                 rows="2"
                                                 placeholder="Enter answer"
                                             ></textarea>
@@ -410,7 +412,7 @@ const CreateDeck = () => {
                             <button
                                 type="button"
                                 onClick={addFlashcard}
-                                className="w-full py-2 px-4 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition"
+                                className={`w-full py-2 px-4 ${styles.border} border-purple-600 text-purple-600 rounded-md hover:${styles.backgroundSecondary} transition`}
                             >
                                 + Add Another Card
                             </button>
@@ -421,7 +423,7 @@ const CreateDeck = () => {
                         <button
                             type="button"
                             onClick={handleCancel}
-                            className="px-4 py-2 border rounded-md hover:bg-gray-50"
+                            className={`px-4 py-2 ${styles.border} rounded-md hover:${styles.backgroundSecondary}`}
                         >
                             Cancel
                         </button>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { flashcardService } from '../services/flashcardService';
 import { useUser } from '../contexts/UserContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import UserNavbar from '../components/UserNavbar';
 
@@ -9,6 +10,7 @@ const EditDeck = () => {
     const { deckId } = useParams();
     const navigate = useNavigate();
     const { user: contextUser } = useUser();
+    const { styles } = useTheme();
     const [user, setUser] = useState(contextUser);
     
     const [isLoading, setIsLoading] = useState(true);
@@ -266,12 +268,12 @@ const EditDeck = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className={`min-h-screen ${styles.backgroundSecondary}`}>
             <UserNavbar user={user} isLoggedIn={!!user} onLogout={() => {}} />
             
             <div className="max-w-5xl mx-auto p-6">
                 <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold">Edit Flashcard Deck</h1>
+                    <h1 className={`text-2xl font-bold ${styles.text}`}>Edit Flashcard Deck</h1>
                 </div>
 
                 {error && (
