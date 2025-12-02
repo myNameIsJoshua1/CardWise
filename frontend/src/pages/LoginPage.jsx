@@ -205,16 +205,6 @@ const LoginPage = ({ setUser: propsSetUser }) => {
                 'Sign in'
               )}
             </button>
-            
-            {/* Divider — continue with email/password only */}
-            <div className="relative py-3">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-gray-50 text-gray-500">Or continue with email</span>
-              </div>
-            </div>
           </form>
           
           <div className="mt-8 text-center">

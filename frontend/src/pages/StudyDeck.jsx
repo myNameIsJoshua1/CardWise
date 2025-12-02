@@ -263,8 +263,8 @@ const StudyDeck = () => {
         // If animations are enabled, use the full transition effects
         if (optimizationSettings.useAnimations) {
             return {
-                frontSide: `${baseClass} transition-all duration-500 ${flipped ? 'opacity-0 rotate-y-180' : 'opacity-100'}`,
-                backSide: `${baseClass} transition-all duration-500 ${flipped ? 'opacity-100' : 'opacity-0 rotate-y-180'}`
+                frontSide: `${baseClass} transition-all duration-500 ${flipped ? 'opacity-0' : 'opacity-100'}`,
+                backSide: `${baseClass} transition-all duration-500 ${flipped ? 'opacity-100' : 'opacity-0'}`
             };
         }
         
@@ -360,18 +360,30 @@ const StudyDeck = () => {
                 {/* Flashcard */}
                 <div className="p-5">
                     <div 
-                        className="h-64 w-full cursor-pointer relative rounded-lg overflow-hidden"
+                        className="h-64 w-full cursor-pointer relative rounded-lg"
+                        style={{
+                            perspective: '1000px',
+                        }}
                         onClick={toggleFlip}
                     >
                         <div 
-                            className={getAnimationClasses.frontSide}
                             style={{
-                                backfaceVisibility: "hidden",
-                                transform: flipped && optimizationSettings.useAnimations ? "rotateY(180deg)" : "rotateY(0deg)",
-                                transformStyle: optimizationSettings.useAnimations ? "preserve-3d" : "flat",
+                                width: '100%',
+                                height: '100%',
+                                position: 'relative',
+                                transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                                transformStyle: 'preserve-3d',
+                                transition: 'transform 0.6s ease-in-out',
                             }}
                         >
-                            <div className={`bg-gradient-to-br from-purple-100 to-purple-50 rounded-lg flex flex-col items-center justify-center p-6 text-center h-full border border-purple-200 ${optimizationSettings.useShadowEffects ? 'shadow-inner' : ''}`}>
+                            {/* Front side */}
+                            <div 
+                                className={`bg-gradient-to-br from-purple-100 to-purple-50 rounded-lg flex flex-col items-center justify-center p-6 text-center h-full border border-purple-200 absolute w-full ${optimizationSettings?.useShadowEffects ? 'shadow-inner' : ''}`}
+                                style={{
+                                    backfaceVisibility: 'hidden',
+                                    WebkitBackfaceVisibility: 'hidden',
+                                }}
+                            >
                                 <h4 className="text-purple-800 text-xl font-medium mb-4">{currentFlashcard.term}</h4>
                                 <div className="mt-auto">
                                     <p className="text-purple-600 text-sm flex items-center">
@@ -382,17 +394,16 @@ const StudyDeck = () => {
                                     </p>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div 
-                            className={getAnimationClasses.backSide}
-                            style={{
-                                backfaceVisibility: "hidden",
-                                transform: flipped && optimizationSettings.useAnimations ? "rotateY(0deg)" : "rotateY(-180deg)",
-                                transformStyle: optimizationSettings.useAnimations ? "preserve-3d" : "flat"
-                            }}
-                        >
-                            <div className={`bg-gradient-to-br from-orange-100 to-yellow-50 rounded-lg flex flex-col items-center justify-center p-6 text-center h-full border border-orange-200 ${optimizationSettings.useShadowEffects ? 'shadow-inner' : ''}`}>
+
+                            {/* Back side */}
+                            <div 
+                                className={`bg-gradient-to-br from-orange-100 to-yellow-50 rounded-lg flex flex-col items-center justify-center p-6 text-center h-full border border-orange-200 absolute w-full ${optimizationSettings?.useShadowEffects ? 'shadow-inner' : ''}`}
+                                style={{
+                                    backfaceVisibility: 'hidden',
+                                    WebkitBackfaceVisibility: 'hidden',
+                                    transform: 'rotateY(180deg)',
+                                }}
+                            >
                                 <p className="text-gray-800 text-lg">{currentFlashcard.definition}</p>
                                 <div className="mt-auto">
                                     <p className="text-orange-600 text-sm flex items-center">

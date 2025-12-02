@@ -48,6 +48,7 @@ public class SecurityConfig {
                                 "/admin/login",
                                 "/user/google",
                                 "/user/create",
+                                "/user/forgot-password",
                                 "/oauth/**"
                         ).permitAll()
                         .requestMatchers("/user/**","/deck/**").authenticated()

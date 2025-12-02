@@ -165,4 +165,28 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error counting users: " + e.getMessage());
         }
     }
+
+    // Forgot password - reset directly with email and new password
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String newPassword = request.get("newPassword");
+
+        if (email == null || newPassword == null) {
+            return ResponseEntity.badRequest().body("Email and new password are required");
+        }
+
+        try {
+            boolean success = userService.resetPasswordByEmail(email, newPassword);
+            if (success) {
+                return ResponseEntity.ok("Password reset successfully");
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Email not found");
+            }
+        } catch (Exception e) {
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error resetting password: " + e.getMessage());
+        }
+    }
 }

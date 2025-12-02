@@ -32,6 +32,7 @@ import { userService } from '../services/userService';
 // EditProfile import temporarily commented out as feature is disabled
 // import EditProfile from '../pages/EditProfile';
 import ChangePassword from '../pages/ChangePassword';
+import ForgotPassword from '../pages/ForgotPassword';
 
 function AppContent() {
     const location = useLocation();
@@ -164,6 +165,7 @@ function AppContent() {
                     <Route path="/" element={<HomePage />} />
                     <Route path="/login" element={<LoginPage setUser={handleUserLogin} />} />
                     <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/admin/login" element={<AdminLoginPage setIsLoggedIn={setIsAdminLoggedIn} setAdmin={setAdmin} />} />
 
                     {/* Protected User Routes */}

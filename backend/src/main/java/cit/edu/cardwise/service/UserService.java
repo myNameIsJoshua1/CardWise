@@ -107,4 +107,17 @@ public class UserService {
     public long getUserCount() {
         return userRepository.count();
     }
+
+    public boolean resetPasswordByEmail(String email, String newPassword) {
+        Optional<UserEntity> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return false;
+        }
+
+        UserEntity user = userOpt.get();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(user);
+        return true;
+    }
 }
