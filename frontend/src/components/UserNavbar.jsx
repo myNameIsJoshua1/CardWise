@@ -52,7 +52,10 @@ const UserNavbar = ({ onLogout }) => {
     }, [displayName]);
     
     return (
-        <nav className={`${styles.navbar}`}>
+        // CHANGED: Added 'sticky top-0 z-50'
+        // 'sticky top-0': Keeps the navbar attached to the top when scrolling
+        // 'z-50': Forces the navbar to be on a layer ABOVE all other content (fixing the overlap line)
+        <nav className={`${styles.navbar} sticky top-0 z-50 w-full`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16">
                     <div className="flex items-center">
@@ -110,7 +113,7 @@ const UserNavbar = ({ onLogout }) => {
                                 </button>
 
                                 <div className="relative group">
-                                    <button className="flex items-center text-white px-3 py-2 rounded-md text-sm font-medium transition-colors hover:text-purple-400">
+                                    <button className={`flex items-center ${styles.navText} px-3 py-2 rounded-md text-sm font-medium transition-colors hover:text-purple-400`}>
                                         <span className="mr-1.5">{displayName}</span>
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                             <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4-4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -251,4 +254,4 @@ const UserNavbar = ({ onLogout }) => {
     );
 };
 
-export default UserNavbar; 
+export default UserNavbar;

@@ -738,22 +738,33 @@ const QuizMode = () => {
           {/* Question */}
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
-              <h4 className="text-sm font-medium text-gray-500">Question {currentQuestionIndex + 1} of {questions.length}</h4>
+              {/* CHANGED: Used styles.textSecondary instead of text-gray-500 */}
+              <h4 className={`text-sm font-medium ${styles.textSecondary}`}>
+                  Question {currentQuestionIndex + 1} of {questions.length}
+              </h4>
               <span className="text-sm font-medium text-purple-600">
                 {currentQuestion.questionType === QUESTION_TYPES.IDENTIFICATION ? 'Identification' : 
                  currentQuestion.questionType === QUESTION_TYPES.MULTIPLE_CHOICE ? 'Multiple Choice' : 'True/False'}
               </span>
             </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">{currentQuestion.question}</h3>
+            
+            {/* CHANGED: Used styles.text instead of text-gray-800 so it turns white in dark mode */}
+            <h3 className={`text-xl font-semibold ${styles.text} mb-4`}>
+                {currentQuestion.question}
+            </h3>
             
             {/* Answer input based on question type */}
             {currentQuestion.questionType === QUESTION_TYPES.IDENTIFICATION && (
               <div className="mb-4">
-                <label htmlFor="answer" className="block text-sm font-medium text-gray-700 mb-1">Your Answer:</label>
+                {/* CHANGED: Used styles.text for the label */}
+                <label htmlFor="answer" className={`block text-sm font-medium ${styles.text} mb-1`}>
+                    Your Answer:
+                </label>
+                {/* CHANGED: Used styles.input for the textarea so background matches theme */}
                 <textarea
                   id="answer"
                   rows="3"
-                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
+                  className={`${styles.input} w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors`}
                   value={answers[currentQuestion.id] || ''}
                   onChange={(e) => handleAnswer(currentQuestion.id, e.target.value)}
                   placeholder="Type your answer here..."
@@ -766,11 +777,12 @@ const QuizMode = () => {
           <div className="flex justify-between">
             <button
               onClick={handlePrevQuestion}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${
+              // CHANGED: Added dark mode support for the Previous button
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center ${
                 currentQuestionIndex > 0
-                  ? 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              } transition-colors flex items-center`}
+                  ? `${styles.buttonSecondary}` 
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'
+              }`}
               disabled={currentQuestionIndex === 0}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
@@ -800,4 +812,4 @@ const QuizMode = () => {
   );
 };
 
-export default QuizMode; 
+export default QuizMode;
