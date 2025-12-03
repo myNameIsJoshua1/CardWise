@@ -44,17 +44,17 @@ const QuizMode = () => {
     tallyComplete: false
   });
 
-  // Memoize the question generation function
+  
   const generateQuestions = useCallback((flashcards, questionCount) => {
-    // Shuffle flashcards
+    
     const shuffled = [...flashcards].sort(() => Math.random() - 0.5);
     
-    // Limit to questionCount
+    
     const selectedFlashcards = shuffled.slice(0, questionCount);
     
-    // Generate ONLY identification questions
+    
     return selectedFlashcards.map(card => {
-      // Always use identification type as requested
+      
       return {
         id: card.id,
         question: card.term,
@@ -64,7 +64,7 @@ const QuizMode = () => {
     });
   }, []);
 
-  // Ensure user data is available and setup quiz
+  
   useEffect(() => {
     const fetchDeckAndGenerateQuestions = async () => {
       try {
