@@ -12,6 +12,17 @@ export const achievementService = {
     }
   },
 
+  // Check if a specific achievement has been unlocked
+  isAchievementUnlocked: async (userId, title) => {
+    try {
+      const achievements = await achievementService.getUserAchievements(userId);
+      return achievements.some(a => a.unlocked && a.title === title);
+    } catch (error) {
+      console.error('Error checking achievement status:', error);
+      return false;
+    }
+  },
+
   // Unlock a new achievement
   unlockAchievement: async (userId, title, description) => {
     try {

@@ -19,27 +19,41 @@ const QuizResults = () => {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
   const [showCelebration, setShowCelebration] = useState(false);
-  const [achievement, setAchievement] = useState(null);
-  const { styles } = useTheme(); 
-
-  const optimizationSettings = useOptimization();
-
-  // Centralized achievement helper (Logic from old code)
+  const [achievements, setAchievements] = useState([]);
+  const { styles } = useTheme();
+  
+  const optimizationSettings = useOptimization();  // Centralized achievement helper with notification
   const tryUnlockAchievement = useCallback(async (userId, title, description) => {
-    try {
-      achievementService.saveAchievementsLocally(userId, { title, description });
-    } catch (err) {
-      // local save should not block
-      console.warn('Local achievement save failed:', err);
-    }
-
     if (!userId) return;
 
     try {
+      // First check if achievement is already unlocked in database
+      const isAlreadyUnlocked = await achievementService.isAchievementUnlocked(userId, title);
+      
+      if (isAlreadyUnlocked) {
+        // Achievement already unlocked, don't show notification
+        return;
+      }
+
+      // Try to unlock on backend
       await achievementService.unlockAchievement(userId, title, description);
+      
+      // Then check if it was actually unlocked in the database
+      const isUnlocked = await achievementService.isAchievementUnlocked(userId, title);
+      
+      if (isUnlocked) {
+        // Show notification only if newly unlocked
+        setAchievements(prev => [...prev, { title, description }]);
+      }
     } catch (err) {
-      // Non-fatal: keep local copy and continue
+      // Non-fatal: fall back to local storage
       console.info('Backend achievement unlock failed, falling back to local:', err);
+      try {
+        achievementService.saveAchievementsLocally(userId, { title, description });
+        setAchievements(prev => [...prev, { title, description }]);
+      } catch (localErr) {
+        console.error('Local achievement save also failed:', localErr);
+      }
     }
   }, []);
 
@@ -88,7 +102,6 @@ const QuizResults = () => {
             description: 'Achieved a perfect score on a quiz'
           };
           await tryUnlockAchievement(userId, perfectScoreAchievement.title, perfectScoreAchievement.description);
-          if (mounted) setAchievement(perfectScoreAchievement);
         }
 
         if (score === 0 && userId) {
@@ -97,7 +110,6 @@ const QuizResults = () => {
             description: 'Get 0% on a quiz'
           };
           await tryUnlockAchievement(userId, zeroScoreAchievement.title, zeroScoreAchievement.description);
-          if (mounted) setAchievement(zeroScoreAchievement);
         }
       } catch (err) {
         console.error('Error loading quiz results:', err);
@@ -257,10 +269,14 @@ const QuizResults = () => {
 
   return (
     <div className={`min-h-screen ${styles.backgroundSecondary} py-8 px-4`}>
-      {/* Achievement Notification */}
-      {achievement && (
-        <AchievementNotification achievement={achievement} onClose={() => setAchievement(null)} />
-      )}
+      {/* Achievement Notifications */}
+      {achievements.map((ach, index) => (
+        <AchievementNotification 
+          key={index}
+          achievement={ach} 
+          onClose={() => setAchievements(prev => prev.filter((_, i) => i !== index))} 
+        />
+      ))}
 
       {showCelebration && (optimizationSettings.useAnimations || Number(results?.score ?? 0) === 100) && (
         <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center" aria-hidden>
@@ -566,4 +582,4 @@ const QuizResults = () => {
   );
 };
 
-export default QuizResults;lts; 
+export default QuizResults; 

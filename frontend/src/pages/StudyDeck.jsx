@@ -4,6 +4,7 @@ import { flashcardService } from '../services/flashcardService';
 import { useUser } from '../contexts/UserContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { achievementService } from '../services/achievementService';
+import AchievementNotification from '../components/AchievementNotification';
 import { useOptimization } from '../components/PerformanceMonitor';
 
 const StudyDeck = () => {
@@ -23,6 +24,8 @@ const StudyDeck = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [flipped, setFlipped] = useState(false);
     const [cardsLearned, setCardsLearned] = useState(0);
+    const [achievement, setAchievement] = useState(null);
+    const [shownAchievements, setShownAchievements] = useState(new Set());
 
     // Load deck data only once when component mounts
     useEffect(() => {
@@ -87,119 +90,80 @@ const StudyDeck = () => {
         const userId = user.id || user.userId;
         
         try {
-            // Create an array of achievement promises
-            const achievementPromises = [];
+            // Define achievements to check
+            const achievementsToUnlock = [];
             
             // First Study Session Achievement
-            achievementPromises.push(
-                achievementService.unlockAchievement(
-                    userId,
-                    'First Steps',
-                    'Started your first study session'
-                )
-            );
+            achievementsToUnlock.push({
+                title: 'First Steps',
+                description: 'Started your first study session'
+            });
             
             // Mark as learned achievement
             if (newCardsLearned === 1) {
-                achievementPromises.push(
-                    achievementService.unlockAchievement(
-                        userId,
-                        'Learning Begins',
-                        'Marked your first flashcard as learned'
-                    )
-                );
-            }
-            
-            // 5 Cards Learned achievement
-            if (newCardsLearned >= 5) {
-                achievementPromises.push(
-                    achievementService.unlockAchievement(
-                        userId,
-                        'Getting Started',
-                        'Learned 5 flashcards'
-                    )
-                );
-            }
-            
-            // Complete a Deck achievement
-            if (newCardsLearned === totalCards) {
-                achievementPromises.push(
-                    achievementService.unlockAchievement(
-                        userId,
-                        'Deck Master',
-                        'Completed an entire flashcard deck'
-                    )
-                );
-            }
-            
-            // Execute all achievement unlocks in parallel
-            await Promise.allSettled(achievementPromises);
-            
-            // Save achievements locally as fallback
-            const localAchievements = [
-                {
-                    title: 'First Steps',
-                    description: 'Started your first study session'
-                }
-            ];
-            
-            if (newCardsLearned === 1) {
-                localAchievements.push({
+                achievementsToUnlock.push({
                     title: 'Learning Begins',
                     description: 'Marked your first flashcard as learned'
                 });
             }
             
+            // 5 Cards Learned achievement
             if (newCardsLearned >= 5) {
-                localAchievements.push({
+                achievementsToUnlock.push({
                     title: 'Getting Started',
                     description: 'Learned 5 flashcards'
                 });
             }
             
+            // Complete a Deck achievement
             if (newCardsLearned === totalCards) {
-                localAchievements.push({
+                achievementsToUnlock.push({
                     title: 'Deck Master',
                     description: 'Completed an entire flashcard deck'
                 });
             }
             
-            // Save all local achievements at once
-            localAchievements.forEach(achievement => {
-                achievementService.saveAchievementsLocally(userId, achievement);
-            });
-            
-        } catch (error) {
-            // Save achievements locally as fallback
-            if (user) {
-                const userId = user.id || user.userId;
-                
-                achievementService.saveAchievementsLocally(userId, {
-                    title: 'First Steps',
-                    description: 'Started your first study session'
-                });
-                
-                if (newCardsLearned === 1) {
-                    achievementService.saveAchievementsLocally(userId, {
-                        title: 'Learning Begins',
-                        description: 'Marked your first flashcard as learned'
-                    });
-                }
-                
-                if (newCardsLearned >= 5) {
-                    achievementService.saveAchievementsLocally(userId, {
-                        title: 'Getting Started',
-                        description: 'Learned 5 flashcards'
-                    });
-                }
-                
-                if (newCardsLearned === totalCards) {
-                    achievementService.saveAchievementsLocally(userId, {
-                        title: 'Deck Master',
-                        description: 'Completed an entire flashcard deck'
-                    });
+            // Process each achievement and show notification
+            for (const ach of achievementsToUnlock) {
+                // Only show if not already shown
+                if (!shownAchievements.has(ach.title)) {
+                    try {
+                        // First check if achievement is already unlocked in database
+                        const isAlreadyUnlocked = await achievementService.isAchievementUnlocked(userId, ach.title);
+                        
+                        if (isAlreadyUnlocked) {
+                            // Achievement already unlocked, skip
+                            setShownAchievements(prev => new Set(prev).add(ach.title));
+                            continue;
+                        }
+                        
+                        // Try to unlock on backend
+                        await achievementService.unlockAchievement(userId, ach.title, ach.description);
+                        
+                        // Check if actually unlocked in database
+                        const isUnlocked = await achievementService.isAchievementUnlocked(userId, ach.title);
+                        
+                        if (isUnlocked) {
+                            // Show notification and mark as shown
+                            setAchievement(ach);
+                            setShownAchievements(prev => new Set(prev).add(ach.title));
+                        }
+                    } catch (err) {
+                        // Fall back to local storage
+                        console.error('Achievement unlock failed:', err);
+                        try {
+                            achievementService.saveAchievementsLocally(userId, ach);
+                            setAchievement(ach);
+                            setShownAchievements(prev => new Set(prev).add(ach.title));
+                        } catch (localErr) {
+                            console.error('Local save also failed:', localErr);
+                        }
+                    }
                 }
             }
+            
+        } catch (error) {
+            console.error('Error checking achievements:', error);
         }
     }, [user]);
 
@@ -332,6 +296,11 @@ const StudyDeck = () => {
 
     return (
         <div className={`fixed inset-0 ${styles.modalBackdrop} backdrop-blur-sm flex items-center justify-center z-50`}>
+            {/* Achievement Notification */}
+            {achievement && (
+                <AchievementNotification achievement={achievement} onClose={() => setAchievement(null)} />
+            )}
+            
             <div className={`${styles.modal} rounded-lg w-full max-w-md mx-4 overflow-hidden ${optimizationSettings.useShadowEffects ? 'shadow-xl' : styles.border}`}>
                 <div className="p-4 flex justify-between items-center bg-gradient-to-r from-purple-600 to-orange-500">
                     <h3 className="text-lg font-bold text-white">{deckTitle} - Study Mode</h3>
