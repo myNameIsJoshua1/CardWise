@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { flashcardService } from '../services/flashcardService';
 import { achievementService } from '../services/achievementService';
 import { useUser } from '../contexts/UserContext';
-import { useTheme } from '../contexts/ThemeContext'; // Added from new design
+import { useTheme } from '../contexts/ThemeContext';
 import AchievementNotification from '../components/AchievementNotification';
 import { useOptimization } from '../components/PerformanceMonitor';
 
@@ -12,11 +12,7 @@ const DEFAULT_CONFETTI_COUNT = 24;
 const QuizResults = () => {
   const { deckId } = useParams();
   const navigate = useNavigate();
-  // Using the safer destructuring from your old code
   const { user } = useUser() || {};
-  // Using the theme hook from the new design
-  const { styles } = useTheme(); 
-  
   const [results, setResults] = useState(null);
   const [deckTitle, setDeckTitle] = useState('');
   const [loading, setLoading] = useState(true);
@@ -24,6 +20,7 @@ const QuizResults = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [showCelebration, setShowCelebration] = useState(false);
   const [achievement, setAchievement] = useState(null);
+  const { styles } = useTheme(); 
 
   const optimizationSettings = useOptimization();
 
@@ -32,6 +29,7 @@ const QuizResults = () => {
     try {
       achievementService.saveAchievementsLocally(userId, { title, description });
     } catch (err) {
+      // local save should not block
       console.warn('Local achievement save failed:', err);
     }
 
@@ -40,11 +38,11 @@ const QuizResults = () => {
     try {
       await achievementService.unlockAchievement(userId, title, description);
     } catch (err) {
+      // Non-fatal: keep local copy and continue
       console.info('Backend achievement unlock failed, falling back to local:', err);
     }
   }, []);
 
-  // Fetch Data Effect (Logic from old code)
   useEffect(() => {
     let mounted = true;
 
@@ -74,7 +72,6 @@ const QuizResults = () => {
           setDeckTitle(quizResults.title);
         }
 
-        // Celebration for high scores
         const score = Number(quizResults.score ?? 0);
         if (score >= 80) {
           setTimeout(() => mounted && setShowCelebration(true), 500);
@@ -145,7 +142,7 @@ const QuizResults = () => {
   }, []);
 
   // Stats calculation
-  const stats = useMemo(() => {
+ const stats = useMemo(() => {
     if (!results) return {
       percentComplete: 0,
       timePerQuestion: 0,
@@ -153,7 +150,7 @@ const QuizResults = () => {
       averageScore: 0
     };
 
-    const correctCount = Number(results.correctCount ?? 0);
+   const correctCount = Number(results.correctCount ?? 0);
     const totalQuestions = Number(results.totalQuestions ?? 0);
     const timeSpent = Number(results.timeSpent ?? 0);
 
@@ -178,7 +175,7 @@ const QuizResults = () => {
     return acc;
   }, [results, isAnswerCorrect]);
 
-  // Confetti setup
+  // Memoized confetti pieces to avoid re-creating on every render
   const confettiPieces = useMemo(() => {
     const count = DEFAULT_CONFETTI_COUNT;
     const colors = ['#FFC107', '#FF5722', '#03A9F4', '#4CAF50'];
@@ -190,24 +187,26 @@ const QuizResults = () => {
     }));
   }, []);
 
-  const handleTabChange = useCallback((tab) => setActiveTab(tab), []);
+    // Formatted date memoized so it's stable and declared with other hooks
+    const formattedDate = useMemo(() => (results?.date ? new Date(results.date).toLocaleDateString() : '—'), [results]);
 
-  const handleRetryQuiz = useCallback(() => {
-    sessionStorage.removeItem(`quizResult-${deckId}`);
-    navigate(`/quiz/${deckId}`);
-  }, [navigate, deckId]);
+    const handleTabChange = useCallback((tab) => setActiveTab(tab), []);
 
-  const handleBackToDeck = useCallback(() => navigate(`/decks/${deckId}`), [navigate, deckId]);
+    const handleRetryQuiz = useCallback(() => {
+      // clear stored result so the quiz starts fresh
+      sessionStorage.removeItem(`quizResult-${deckId}`);
+      navigate(`/quiz/${deckId}`);
+    }, [navigate, deckId]);
 
-  // Keyboard support
+    const handleBackToDeck = useCallback(() => navigate(`/decks/${deckId}`), [navigate, deckId]);
+
+  // Keyboard support for tab buttons
   const handleTabKey = useCallback((e, tab) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       setActiveTab(tab);
     }
   }, []);
-
-  // --- RENDERING (Using the New Design / Theme System) ---
 
   if (loading) {
     return (
