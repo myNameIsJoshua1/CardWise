@@ -473,81 +473,40 @@ const QuizMode = () => {
           tallyStep: 'Checking achievements...'
         }));
         
-        // Prepare achievement promises
-        const achievementPromises = [
-          // First Quiz Achievement
-          achievementService.unlockAchievement(
-            userId,
-            'Quiz Taker',
-            'Completed your first quiz'
-          ),
+        // Check achievements conditionally
+        const achievementChecks = [
+          { title: 'Quiz Taker', description: 'Completed your first quiz', condition: true },
+          { title: 'Perfect Score', description: 'Achieved a perfect score on a quiz', condition: score === 100 },
+          { title: 'High Achiever', description: 'Scored 80% or higher on a quiz', condition: score >= 80 },
+          { title: 'Speed Learner', description: 'Completed a quiz in record time', condition: timeSpent < 120 && questions.length >= 5 }
         ];
         
-        // Achievement for perfect score
-        if (score === 100) {
-          achievementPromises.push(
-            achievementService.unlockAchievement(
-              userId,
-              'Perfect Score',
-              'Achieved a perfect score on a quiz'
-            )
-          );
+        const achievementPromises = achievementChecks
+          .filter(ach => ach.condition)
+          .map(async (ach) => {
+            try {
+              const result = await achievementService.unlockAchievement(userId, ach.title, ach.description);
+              return { ...ach, ...result };
+            } catch (error) {
+              achievementService.saveAchievementsLocally(userId, { title: ach.title, description: ach.description });
+              return { ...ach, error: true };
+            }
+          });
+        
+        // Process achievements and only show notification for newly unlocked ones
+        const achievementResults = await Promise.allSettled(achievementPromises);
+        const newlyUnlocked = achievementResults
+          .filter(r => r.status === 'fulfilled' && r.value?.newlyUnlocked)
+          .map(r => r.value);
+        
+        // Store the most significant newly unlocked achievement to show
+        let achievementToShow = null;
+        if (newlyUnlocked.length > 0) {
+          achievementToShow = newlyUnlocked[newlyUnlocked.length - 1];
         }
         
-        // Achievement for high score (over 80%)
-        if (score >= 80) {
-          achievementPromises.push(
-            achievementService.unlockAchievement(
-              userId,
-              'High Achiever',
-              'Scored 80% or higher on a quiz'
-            )
-          );
-        }
-        
-        // Achievement for completing a quiz quickly
-        if (timeSpent < 120 && questions.length >= 5) {
-          achievementPromises.push(
-            achievementService.unlockAchievement(
-              userId,
-              'Speed Learner',
-              'Completed a quiz in record time'
-            )
-          );
-        }
-        
-        // Add all achievement promises
-        apiPromises.push(
-          Promise.allSettled(achievementPromises)
-            .catch(() => {
-              // Save achievements locally as fallback
-              achievementService.saveAchievementsLocally(userId, {
-                title: 'Quiz Taker',
-                description: 'Completed your first quiz'
-              });
-              
-              if (score === 100) {
-                achievementService.saveAchievementsLocally(userId, {
-                  title: 'Perfect Score',
-                  description: 'Achieved a perfect score on a quiz'
-                });
-              }
-              
-              if (score >= 80) {
-                achievementService.saveAchievementsLocally(userId, {
-                  title: 'High Achiever',
-                  description: 'Scored 80% or higher on a quiz'
-                });
-              }
-              
-              if (timeSpent < 120 && questions.length >= 5) {
-                achievementService.saveAchievementsLocally(userId, {
-                  title: 'Speed Learner',
-                  description: 'Completed a quiz in record time'
-                });
-              }
-            })
-        );
+        // Add to api promises array
+        apiPromises.push(Promise.resolve(achievementToShow));
         
         // Wait for all API calls to complete
         await Promise.allSettled(apiPromises);

@@ -231,18 +231,23 @@ const CreateDeck = () => {
                   const savedResult = achievementService.saveAchievementsLocally(userId, achievement);
                   console.log('Achievement saved locally:', savedResult);
                   
-                  // Also try to unlock via backend
+                  // Try to unlock via backend and check if it's newly unlocked
                   try {
-                    await achievementService.unlockAchievement(
+                    const result = await achievementService.unlockAchievement(
                       userId,
                       achievement.title,
                       achievement.description
                     );
+                    
+                    // Only show notification if this is a new unlock
+                    if (result.newlyUnlocked) {
+                      setAchievement(achievement);
+                    }
                   } catch (err) {
                     console.log('Backend achievement unlock failed, using localStorage:', err);
+                    // Show notification for localStorage fallback
+                    setAchievement(achievement);
                   }
-                  
-                  setAchievement(achievement);
                 }
               }
             } catch (err) {

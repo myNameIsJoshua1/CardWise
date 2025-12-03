@@ -26,20 +26,20 @@ const QuizResults = () => {
 
   // Centralized achievement helper (Logic from old code)
   const tryUnlockAchievement = useCallback(async (userId, title, description) => {
-    try {
-      achievementService.saveAchievementsLocally(userId, { title, description });
-    } catch (err) {
-      // local save should not block
-      console.warn('Local achievement save failed:', err);
-    }
-
-    if (!userId) return;
+    if (!userId) return { newlyUnlocked: false };
 
     try {
-      await achievementService.unlockAchievement(userId, title, description);
+      const result = await achievementService.unlockAchievement(userId, title, description);
+      if (result.newlyUnlocked) {
+        achievementService.saveAchievementsLocally(userId, { title, description });
+      }
+      return result;
     } catch (err) {
       // Non-fatal: keep local copy and continue
       console.info('Backend achievement unlock failed, falling back to local:', err);
+      achievementService.saveAchievementsLocally(userId, { title, description });
+      // If backend fails, treat it as newly unlocked (show notification)
+      return { newlyUnlocked: true, error: true };
     }
   }, []);
 
@@ -87,8 +87,12 @@ const QuizResults = () => {
             title: 'Perfect Score',
             description: 'Achieved a perfect score on a quiz'
           };
-          await tryUnlockAchievement(userId, perfectScoreAchievement.title, perfectScoreAchievement.description);
-          if (mounted) setAchievement(perfectScoreAchievement);
+          const result = await tryUnlockAchievement(userId, perfectScoreAchievement.title, perfectScoreAchievement.description);
+          console.log('Perfect Score achievement result:', result);
+          // Only show notification if newly unlocked
+          if (mounted && result.newlyUnlocked) {
+            setAchievement(perfectScoreAchievement);
+          }
         }
 
         if (score === 0 && userId) {
@@ -96,8 +100,8 @@ const QuizResults = () => {
             title: 'Learning Journey',
             description: 'Get 0% on a quiz'
           };
-          await tryUnlockAchievement(userId, zeroScoreAchievement.title, zeroScoreAchievement.description);
-          if (mounted) setAchievement(zeroScoreAchievement);
+          const result = await tryUnlockAchievement(userId, zeroScoreAchievement.title, zeroScoreAchievement.description);
+          if (mounted && result.newlyUnlocked) setAchievement(zeroScoreAchievement);
         }
       } catch (err) {
         console.error('Error loading quiz results:', err);
@@ -186,9 +190,6 @@ const QuizResults = () => {
       rotate: Math.floor(Math.random() * 720)
     }));
   }, []);
-
-    // Formatted date memoized so it's stable and declared with other hooks
-    const formattedDate = useMemo(() => (results?.date ? new Date(results.date).toLocaleDateString() : '—'), [results]);
 
     const handleTabChange = useCallback((tab) => setActiveTab(tab), []);
 
@@ -603,4 +604,4 @@ const QuizResults = () => {
   );
 };
 
-export default QuizResults;lts; 
+export default QuizResults;

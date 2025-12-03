@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { flashcardService } from '../services/flashcardService';
-import { useUser } from '../contexts/UserContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 const DeckFlashcards = ({ user }) => {

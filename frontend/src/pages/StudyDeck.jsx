@@ -5,6 +5,7 @@ import { useUser } from '../contexts/UserContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { achievementService } from '../services/achievementService';
 import { useOptimization } from '../components/PerformanceMonitor';
+import AchievementNotification from '../components/AchievementNotification';
 
 const StudyDeck = () => {
     const { deckId } = useParams();
@@ -23,6 +24,7 @@ const StudyDeck = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [flipped, setFlipped] = useState(false);
     const [cardsLearned, setCardsLearned] = useState(0);
+    const [achievement, setAchievement] = useState(null);
 
     // Load deck data only once when component mounts
     useEffect(() => {
@@ -87,118 +89,93 @@ const StudyDeck = () => {
         const userId = user.id || user.userId;
         
         try {
-            // Create an array of achievement promises
-            const achievementPromises = [];
-            
-            // First Study Session Achievement
-            achievementPromises.push(
-                achievementService.unlockAchievement(
-                    userId,
-                    'First Steps',
-                    'Started your first study session'
-                )
-            );
-            
-            // Mark as learned achievement
-            if (newCardsLearned === 1) {
-                achievementPromises.push(
-                    achievementService.unlockAchievement(
-                        userId,
-                        'Learning Begins',
-                        'Marked your first flashcard as learned'
-                    )
-                );
-            }
-            
-            // 5 Cards Learned achievement
-            if (newCardsLearned >= 5) {
-                achievementPromises.push(
-                    achievementService.unlockAchievement(
-                        userId,
-                        'Getting Started',
-                        'Learned 5 flashcards'
-                    )
-                );
-            }
-            
-            // Complete a Deck achievement
-            if (newCardsLearned === totalCards) {
-                achievementPromises.push(
-                    achievementService.unlockAchievement(
-                        userId,
-                        'Deck Master',
-                        'Completed an entire flashcard deck'
-                    )
-                );
-            }
-            
-            // Execute all achievement unlocks in parallel
-            await Promise.allSettled(achievementPromises);
-            
-            // Save achievements locally as fallback
-            const localAchievements = [
+            // Determine which achievement(s) to check
+            const achievementsToCheck = [
                 {
                     title: 'First Steps',
-                    description: 'Started your first study session'
-                }
-            ];
-            
-            if (newCardsLearned === 1) {
-                localAchievements.push({
+                    description: 'Started your first study session',
+                    condition: true
+                },
+                {
                     title: 'Learning Begins',
-                    description: 'Marked your first flashcard as learned'
-                });
-            }
-            
-            if (newCardsLearned >= 5) {
-                localAchievements.push({
+                    description: 'Marked your first flashcard as learned',
+                    condition: newCardsLearned === 1
+                },
+                {
                     title: 'Getting Started',
-                    description: 'Learned 5 flashcards'
-                });
-            }
-            
-            if (newCardsLearned === totalCards) {
-                localAchievements.push({
+                    description: 'Learned 5 flashcards',
+                    condition: newCardsLearned >= 5
+                },
+                {
                     title: 'Deck Master',
-                    description: 'Completed an entire flashcard deck'
-                });
-            }
+                    description: 'Completed an entire flashcard deck',
+                    condition: newCardsLearned === totalCards
+                }
+            ].filter(ach => ach.condition);
             
-            // Save all local achievements at once
-            localAchievements.forEach(achievement => {
-                achievementService.saveAchievementsLocally(userId, achievement);
+            // Create an array of achievement promises
+            const achievementPromises = achievementsToCheck.map(async (ach) => {
+                try {
+                    const result = await achievementService.unlockAchievement(
+                        userId,
+                        ach.title,
+                        ach.description
+                    );
+                    return { ...ach, ...result };
+                } catch (error) {
+                    achievementService.saveAchievementsLocally(userId, { title: ach.title, description: ach.description });
+                    return { ...ach, error: true };
+                }
             });
+            
+            // Execute all achievement unlocks in parallel
+            const results = await Promise.allSettled(achievementPromises);
+            
+            // Find the most significant newly unlocked achievement to show
+            const newlyUnlocked = results
+                .filter(r => r.status === 'fulfilled' && r.value?.newlyUnlocked)
+                .map(r => r.value);
+            
+            if (newlyUnlocked.length > 0) {
+                setAchievement(newlyUnlocked[newlyUnlocked.length - 1]);
+            }
             
         } catch (error) {
             // Save achievements locally as fallback
             if (user) {
                 const userId = user.id || user.userId;
                 
-                achievementService.saveAchievementsLocally(userId, {
-                    title: 'First Steps',
-                    description: 'Started your first study session'
-                });
+                const achievementsToSave = [
+                    {
+                        title: 'First Steps',
+                        description: 'Started your first study session'
+                    }
+                ];
                 
                 if (newCardsLearned === 1) {
-                    achievementService.saveAchievementsLocally(userId, {
+                    achievementsToSave.push({
                         title: 'Learning Begins',
                         description: 'Marked your first flashcard as learned'
                     });
                 }
                 
                 if (newCardsLearned >= 5) {
-                    achievementService.saveAchievementsLocally(userId, {
+                    achievementsToSave.push({
                         title: 'Getting Started',
                         description: 'Learned 5 flashcards'
                     });
                 }
                 
                 if (newCardsLearned === totalCards) {
-                    achievementService.saveAchievementsLocally(userId, {
+                    achievementsToSave.push({
                         title: 'Deck Master',
                         description: 'Completed an entire flashcard deck'
                     });
                 }
+                
+                achievementsToSave.forEach(achievement => {
+                    achievementService.saveAchievementsLocally(userId, achievement);
+                });
             }
         }
     }, [user]);
@@ -258,25 +235,6 @@ const StudyDeck = () => {
         return flashcards[currentIndex] || null;
     }, [flashcards, currentIndex]);
 
-    // Determine animation classes based on optimization settings
-    const getAnimationClasses = useMemo(() => {
-        const baseClass = "absolute w-full h-full backface-hidden";
-        
-        // If animations are enabled, use the full transition effects
-        if (optimizationSettings.useAnimations) {
-            return {
-                frontSide: `${baseClass} transition-all duration-500 ${flipped ? 'opacity-0' : 'opacity-100'}`,
-                backSide: `${baseClass} transition-all duration-500 ${flipped ? 'opacity-100' : 'opacity-0'}`
-            };
-        }
-        
-        // Otherwise use simplified transitions with no rotation animations
-        return {
-            frontSide: `${baseClass} ${flipped ? 'hidden' : 'block'}`,
-            backSide: `${baseClass} ${flipped ? 'block' : 'hidden'}`
-        };
-    }, [flipped, optimizationSettings.useAnimations]);
-
     if (loading) {
         return (
             <div className="flex justify-center items-center h-screen">
@@ -332,6 +290,9 @@ const StudyDeck = () => {
 
     return (
         <div className={`fixed inset-0 ${styles.modalBackdrop} backdrop-blur-sm flex items-center justify-center z-50`}>
+            {achievement && (
+                <AchievementNotification achievement={achievement} onClose={() => setAchievement(null)} />
+            )}
             <div className={`${styles.modal} rounded-lg w-full max-w-md mx-4 overflow-hidden ${optimizationSettings.useShadowEffects ? 'shadow-xl' : styles.border}`}>
                 <div className="p-4 flex justify-between items-center bg-gradient-to-r from-purple-600 to-orange-500">
                     <h3 className="text-lg font-bold text-white">{deckTitle} - Study Mode</h3>

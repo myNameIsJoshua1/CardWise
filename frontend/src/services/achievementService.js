@@ -15,6 +15,25 @@ export const achievementService = {
   // Unlock a new achievement
   unlockAchievement: async (userId, title, description) => {
     try {
+      // First check if achievement already exists for this user
+      let existingAchievements = [];
+      try {
+        existingAchievements = await achievementService.getUserAchievements(userId);
+      } catch (err) {
+        console.log('Could not fetch existing achievements, will proceed with unlock:', err);
+        existingAchievements = [];
+      }
+      
+      const alreadyUnlocked = existingAchievements.some(
+        achievement => achievement.title === title && achievement.unlocked
+      );
+      
+      if (alreadyUnlocked) {
+        console.log(`Achievement "${title}" already unlocked for user ${userId}`);
+        return { alreadyUnlocked: true, newlyUnlocked: false };
+      }
+      
+      // If not unlocked, proceed to unlock
       const response = await api.post('/achievements/unlock', null, {
         params: {
           userId,
@@ -22,7 +41,8 @@ export const achievementService = {
           description
         }
       });
-      return response.data;
+      console.log(`Achievement "${title}" newly unlocked for user ${userId}`);
+      return { ...response.data, newlyUnlocked: true, alreadyUnlocked: false };
     } catch (error) {
       console.error('Error unlocking achievement:', error);
       throw error;
