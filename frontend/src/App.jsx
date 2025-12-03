@@ -10,7 +10,7 @@ function App() {
         <Router>
             <UserProvider>
                 <PerformanceMonitor>
-                    <div className="min-h-screen bg-gray-50">
+                    <div className="min-h-screen transition-colors duration-200">
                         <AppContent />
                     </div>
                 </PerformanceMonitor>

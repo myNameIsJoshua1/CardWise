@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { achievementService } from '../services/achievementService';
 import { useUser } from '../contexts/UserContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 // All possible achievements in the game
 const ALL_ACHIEVEMENTS = [
@@ -70,6 +71,7 @@ const ALL_ACHIEVEMENTS = [
 const Achievements = () => {
   const navigate = useNavigate();
   const { user } = useUser();
+  const { styles } = useTheme();
   const [achievements, setAchievements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -197,21 +199,21 @@ const Achievements = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Your Achievements</h1>
+    <div className={`max-w-4xl mx-auto p-4 ${styles.background}`}>
+      <h1 className={`text-2xl font-bold mb-6 ${styles.text}`}>Your Achievements</h1>
       
       {achievements.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-md p-8 text-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className={`${styles.card} rounded-lg shadow-md p-8 text-center`}>
+          <svg xmlns="http://www.w3.org/2000/svg" className={`h-16 w-16 mx-auto ${styles.textMuted} mb-4`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
-          <h2 className="text-xl font-semibold mb-2">No Achievements Yet</h2>
-          <p className="text-gray-600 mb-4">
+          <h2 className={`text-xl font-semibold mb-2 ${styles.text}`}>No Achievements Yet</h2>
+          <p className={`${styles.textSecondary} mb-4`}>
             Complete quizzes and study decks to unlock achievements!
           </p>
-          <button 
+          <button
             onClick={() => navigate('/decks')}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className={`${styles.button} text-white px-4 py-2 rounded hover:opacity-90`}
           >
             Browse Decks
           </button>
@@ -219,12 +221,12 @@ const Achievements = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {achievements.map((achievement) => (
-            <div 
-              key={achievement.id} 
+            <div
+              key={achievement.id}
               className={`rounded-lg shadow-md p-4 border-l-4 transition-all ${
-                achievement.unlocked 
-                  ? 'bg-white border-green-500' 
-                  : 'bg-gray-100 border-gray-300 opacity-60'
+                achievement.unlocked
+                  ? `${styles.card} border-green-500`
+                  : `${styles.backgroundSecondary} ${styles.border} opacity-60`
               }`}
             >
               <div className="flex items-start">
@@ -235,20 +237,20 @@ const Achievements = () => {
                 </div>
                 <div className="flex-1">
                   <h3 className={`font-semibold text-lg ${
-                    achievement.unlocked ? 'text-gray-900' : 'text-gray-500'
+                    achievement.unlocked ? styles.text : styles.textMuted
                   }`}>
                     {achievement.title}
                   </h3>
                   <p className={`text-sm mb-2 ${
-                    achievement.unlocked ? 'text-gray-600' : 'text-gray-500'
+                    achievement.unlocked ? styles.textSecondary : styles.textMuted
                   }`}>
                     {achievement.description}
                   </p>
                   <p className={`text-xs ${
-                    achievement.unlocked ? 'text-green-600' : 'text-gray-400'
+                    achievement.unlocked ? styles.success : styles.textMuted
                   }`}>
-                    {achievement.unlocked 
-                      ? `Unlocked: ${formatDate(achievement.unlockedAt)}` 
+                    {achievement.unlocked
+                      ? `Unlocked: ${formatDate(achievement.unlockedAt)}`
                       : 'Locked'}
                   </p>
                 </div>
