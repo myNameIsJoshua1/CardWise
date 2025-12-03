@@ -396,19 +396,25 @@ const QuizResults = () => {
                     <div className="relative pt-1 mb-6">
                       <div className="flex mb-2 items-center justify-between">
                         <div>
-                          <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-green-600 bg-green-200">Correct</span>
+                          <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-green-600 bg-green-200">
+                            Correct
+                          </span>
                         </div>
                         <div className="text-right">
-                          <span className="text-xs font-semibold inline-block text-green-600">{results.correctCount ?? 0}/{results.totalQuestions ?? 0}</span>
+                          <span className="text-xs font-semibold inline-block text-green-600">
+                            {results.correctCount}/{results.totalQuestions}
+                          </span>
                         </div>
                       </div>
                       <div className="flex h-4 mb-4 overflow-hidden rounded-lg bg-gray-200">
                         <div style={{ width: `${(results.totalQuestions > 0 ? (results.correctCount / results.totalQuestions) * 100 : 0)}%` }} className="bg-green-500"></div>
                       </div>
-
+                      
                       <div className="flex mb-2 items-center justify-between">
                         <div>
-                          <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-red-600 bg-red-200">Incorrect</span>
+                          <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-red-600 bg-red-200">
+                            Incorrect
+                          </span>
                         </div>
                         <div className="text-right">
                           <span className="text-xs font-semibold inline-block text-red-600">
@@ -420,7 +426,7 @@ const QuizResults = () => {
                         <div style={{ width: `${(results.totalQuestions > 0 ? ((results.totalQuestions - results.correctCount) / results.totalQuestions) * 100 : 0)}%` }} className="bg-red-500"></div>
                       </div>
                     </div>
-
+                    
                     <div className="mt-6">
                       <h4 className={`font-medium text-sm ${styles.text} mb-2`}>Areas to focus on:</h4>
                       {groupedQuestions.incorrect.length > 0 ? (
@@ -432,7 +438,9 @@ const QuizResults = () => {
                             </li>
                           ))}
                           {groupedQuestions.incorrect.length > 3 && (
-                            <li className="text-sm text-purple-600 font-medium cursor-pointer" onClick={() => handleTabChange('incorrect')}>View all incorrect answers →</li>
+                            <li className="text-sm text-purple-600 font-medium cursor-pointer" onClick={() => handleTabChange('incorrect')}>
+                              View all incorrect answers →
+                            </li>
                           )}
                         </ul>
                       ) : (
@@ -521,12 +529,41 @@ const QuizResults = () => {
                   {(results.questions ?? []).map((question, index) => {
                     const isCorrect = isAnswerCorrect(question);
                     return (
-                      <div key={index} className={`p-6 rounded-xl ${optimizationSettings.useShadowEffects ? 'shadow-sm' : 'border'} ${isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
-                        <div className="flex justify-between"><span className="font-medium">Question {index + 1}</span><span className={`flex items-center ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>{isCorrect ? 'Correct' : 'Incorrect'}</span></div>
+                      <div 
+                        key={index} 
+                        className={`p-6 rounded-xl ${optimizationSettings.useShadowEffects ? 'shadow-sm' : 'border'} ${
+                          isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
+                        }`}
+                      >
+                        <div className="flex justify-between">
+                          <span className="font-medium">Question {index + 1}</span>
+                          <span className={`flex items-center ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                            {isCorrect ? (
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                            ) : (
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            )}
+                            {isCorrect ? 'Correct' : 'Incorrect'}
+                          </span>
+                        </div>
                         <p className="mt-3 text-gray-800 font-medium">{question.question}</p>
                         <div className={`mt-4 ${!isCorrect ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : ''}`}>
-                          <div className={`bg-white/60 p-3 rounded-lg border ${isCorrect ? 'border-green-200' : 'border-red-200'}`}><div className="text-sm text-gray-500">Your answer:</div><div className={`font-medium ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>{question.userAnswer ?? '(No answer)'}</div></div>
-                          {!isCorrect && (<div className="bg-white/60 p-3 rounded-lg border border-green-200"><div className="text-sm text-gray-500">Correct answer:</div><div className="font-medium text-green-600">{question.correctAnswer}</div></div>)}
+                          <div className={`bg-white/60 p-3 rounded-lg border ${isCorrect ? 'border-green-200' : 'border-red-200'}`}>
+                            <div className="text-sm text-gray-500">Your answer:</div>
+                            <div className={`font-medium ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                              {question.userAnswer || '(No answer)'}
+                            </div>
+                          </div>
+                          {!isCorrect && (
+                            <div className="bg-white/60 p-3 rounded-lg border border-green-200">
+                              <div className="text-sm text-gray-500">Correct answer:</div>
+                              <div className="font-medium text-green-600">{question.correctAnswer}</div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
