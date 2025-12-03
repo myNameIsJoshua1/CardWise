@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { flashcardService } from '../services/flashcardService';
 import { achievementService } from '../services/achievementService';
 import { useUser } from '../contexts/UserContext';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../contexts/ThemeContext'; // Added from new design
 import AchievementNotification from '../components/AchievementNotification';
 import { useOptimization } from '../components/PerformanceMonitor';
 
@@ -12,8 +12,11 @@ const DEFAULT_CONFETTI_COUNT = 24;
 const QuizResults = () => {
   const { deckId } = useParams();
   const navigate = useNavigate();
-  const { user } = useUser();
-  const { styles } = useTheme();
+  // Using the safer destructuring from your old code
+  const { user } = useUser() || {};
+  // Using the theme hook from the new design
+  const { styles } = useTheme(); 
+  
   const [results, setResults] = useState(null);
   const [deckTitle, setDeckTitle] = useState('');
   const [loading, setLoading] = useState(true);
@@ -22,10 +25,9 @@ const QuizResults = () => {
   const [showCelebration, setShowCelebration] = useState(false);
   const [achievement, setAchievement] = useState(null);
 
-  // Get optimization settings
   const optimizationSettings = useOptimization();
 
-  // Centralized achievement helper
+  // Centralized achievement helper (Logic from old code)
   const tryUnlockAchievement = useCallback(async (userId, title, description) => {
     try {
       achievementService.saveAchievementsLocally(userId, { title, description });
@@ -42,6 +44,7 @@ const QuizResults = () => {
     }
   }, []);
 
+  // Fetch Data Effect (Logic from old code)
   useEffect(() => {
     let mounted = true;
 
@@ -141,7 +144,7 @@ const QuizResults = () => {
     return String(userAnswer) === String(question.correctAnswer);
   }, []);
 
-  // Stats: guarded against divide-by-zero
+  // Stats calculation
   const stats = useMemo(() => {
     if (!results) return {
       percentComplete: 0,
@@ -175,7 +178,7 @@ const QuizResults = () => {
     return acc;
   }, [results, isAnswerCorrect]);
 
-  // Memoized confetti pieces to avoid re-creating on every render
+  // Confetti setup
   const confettiPieces = useMemo(() => {
     const count = DEFAULT_CONFETTI_COUNT;
     const colors = ['#FFC107', '#FF5722', '#03A9F4', '#4CAF50'];
@@ -190,20 +193,21 @@ const QuizResults = () => {
   const handleTabChange = useCallback((tab) => setActiveTab(tab), []);
 
   const handleRetryQuiz = useCallback(() => {
-    // clear stored result so the quiz starts fresh
     sessionStorage.removeItem(`quizResult-${deckId}`);
     navigate(`/quiz/${deckId}`);
   }, [navigate, deckId]);
 
   const handleBackToDeck = useCallback(() => navigate(`/decks/${deckId}`), [navigate, deckId]);
 
-  // Keyboard support for tab buttons
+  // Keyboard support
   const handleTabKey = useCallback((e, tab) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       setActiveTab(tab);
     }
   }, []);
+
+  // --- RENDERING (Using the New Design / Theme System) ---
 
   if (loading) {
     return (
@@ -311,6 +315,7 @@ const QuizResults = () => {
                     : `border-transparent ${styles.textMuted} hover:${styles.text} hover:border-gray-300`
                 }`}
                 onClick={() => handleTabChange('overview')}
+                onKeyDown={(e) => handleTabKey(e, 'overview')}
               >
                 Overview
               </button>
@@ -322,6 +327,7 @@ const QuizResults = () => {
                     : `border-transparent ${styles.textMuted} hover:${styles.text} hover:border-gray-300`
                 }`}
                 onClick={() => handleTabChange('incorrect')}
+                onKeyDown={(e) => handleTabKey(e, 'incorrect')}
               >
                 Incorrect ({groupedQuestions.incorrect.length})
               </button>
@@ -333,6 +339,7 @@ const QuizResults = () => {
                     : `border-transparent ${styles.textMuted} hover:${styles.text} hover:border-gray-300`
                 }`}
                 onClick={() => handleTabChange('all')}
+                onKeyDown={(e) => handleTabKey(e, 'all')}
               >
                 All Questions ({(results.questions ?? []).length})
               </button>
@@ -401,7 +408,7 @@ const QuizResults = () => {
                         </div>
                       </div>
                       <div className="flex h-4 mb-4 overflow-hidden rounded-lg bg-gray-200">
-                        <div style={{ width: `${(results.correctCount / results.totalQuestions) * 100}%` }} className="bg-green-500"></div>
+                        <div style={{ width: `${(results.totalQuestions > 0 ? (results.correctCount / results.totalQuestions) * 100 : 0)}%` }} className="bg-green-500"></div>
                       </div>
                       
                       <div className="flex mb-2 items-center justify-between">
@@ -412,12 +419,12 @@ const QuizResults = () => {
                         </div>
                         <div className="text-right">
                           <span className="text-xs font-semibold inline-block text-red-600">
-                            {results.totalQuestions - results.correctCount}/{results.totalQuestions}
+                            {(results.totalQuestions ?? 0) - (results.correctCount ?? 0)}/{results.totalQuestions ?? 0}
                           </span>
                         </div>
                       </div>
                       <div className="flex h-4 overflow-hidden rounded-lg bg-gray-200">
-                        <div style={{ width: `${((results.totalQuestions - results.correctCount) / results.totalQuestions) * 100}%` }} className="bg-red-500"></div>
+                        <div style={{ width: `${(results.totalQuestions > 0 ? ((results.totalQuestions - results.correctCount) / results.totalQuestions) * 100 : 0)}%` }} className="bg-red-500"></div>
                       </div>
                     </div>
                     
@@ -447,7 +454,7 @@ const QuizResults = () => {
                 <div className="flex justify-between items-center mt-8">
                   <div>
                     <div className={`text-sm ${styles.textMuted} mb-1`}>Date Taken</div>
-                    <div className={`font-medium ${styles.text}`}>{new Date(results.date).toLocaleDateString()}</div>
+                    <div className={`font-medium ${styles.text}`}>{results.date ? new Date(results.date).toLocaleDateString() : '—'}</div>
                   </div>
                   <div className="flex space-x-4">
                     <button 
@@ -520,7 +527,7 @@ const QuizResults = () => {
               <div className={`${optimizationSettings.useAnimations ? 'animate-fade-in' : ''}`}>
                 <h3 className={`text-xl font-semibold mb-4 ${styles.text}`}>All Questions</h3>
                 <div className="space-y-4">
-                  {results.questions && results.questions.map((question, index) => {
+                  {(results.questions ?? []).map((question, index) => {
                     const isCorrect = isAnswerCorrect(question);
                     return (
                       <div 
