@@ -24,9 +24,26 @@ public class ProgressController {
     @PostMapping("/add")
     public ResponseEntity<ProgressEntity> createProgress(@RequestBody ProgressEntity progress) {
         try {
+            // Extract userId from authenticated user
+            org.springframework.security.core.Authentication authentication = 
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            
+            if (authentication != null && authentication.getPrincipal() instanceof org.springframework.security.core.userdetails.UserDetails) {
+                org.springframework.security.core.userdetails.UserDetails userDetails = 
+                    (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal();
+                String username = userDetails.getUsername();
+                
+                // Get userId from UserService by email
+                String userId = progressService.getUserIdByEmail(username);
+                if (userId != null) {
+                    progress.setUserId(userId);
+                }
+            }
+            
             ProgressEntity createdProgress = progressService.createProgress(progress);
             return new ResponseEntity<>(createdProgress, HttpStatus.CREATED);
         } catch (Exception e) {
+            e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -56,6 +73,16 @@ public class ProgressController {
     public ResponseEntity<List<ProgressEntity>> getProgressByFlashcardId(@PathVariable String flashcardId) {
         try {
             List<ProgressEntity> progressList = progressService.getProgressByFlashcardId(flashcardId);
+            return new ResponseEntity<>(progressList, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/getByUserId/{userId}")
+    public ResponseEntity<List<ProgressEntity>> getProgressByUserId(@PathVariable String userId) {
+        try {
+            List<ProgressEntity> progressList = progressService.getProgressByUserId(userId);
             return new ResponseEntity<>(progressList, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -109,7 +136,7 @@ public class ProgressController {
      * @param minutesSpent The number of minutes spent in study mode.
      * @return HTTP 200 if the study time is tracked successfully.
      */
-    @PostMapping("/studyTime")
+    @PostMapping("/trackStudyTime")
     public ResponseEntity<Void> trackStudyTime(
             @RequestParam String userId,
             @RequestParam int minutesSpent) {

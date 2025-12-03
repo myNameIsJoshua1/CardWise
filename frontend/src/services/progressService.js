@@ -23,6 +23,17 @@ export const progressService = {
     }
   },
 
+  // Get progress entries by user ID
+  getProgressByUserId: async (userId) => {
+    try {
+      const response = await api.get(`/progress/getByUserId/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error getting progress for user ${userId}:`, error);
+      throw error;
+    }
+  },
+
   // Get a progress entry by ID
   getProgressById: async (progressId) => {
     try {

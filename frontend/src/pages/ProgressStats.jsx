@@ -11,6 +11,8 @@ const ProgressStats = () => {
   const [flashcardMap, setFlashcardMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [totalDecks, setTotalDecks] = useState(0);
+  const [totalLearnedCards, setTotalLearnedCards] = useState(0);
   const [stats, setStats] = useState({
     totalCards: 0,
     averageScore: 0,
@@ -34,29 +36,115 @@ const ProgressStats = () => {
       try {
         setLoading(true);
         
+        // Get userId from context first, then fallback to localStorage
+        let userId = user?.id || user?.userId;
+        if (!userId) {
+          const storedUser = localStorage.getItem('user');
+          if (storedUser) {
+            const parsedUser = JSON.parse(storedUser);
+            userId = parsedUser.id || parsedUser.userId;
+          }
+        }
+        
+        console.log('Fetching progress for userId:', userId);
+        
+        if (!userId) {
+          console.warn('No userId found, using local data only');
+        }
+        
+        // Fetch user's decks
+        try {
+          const decks = await flashcardService.getDecksByUserId(userId);
+          console.log('Fetched decks:', decks);
+          setTotalDecks(decks?.length || 0);
+        } catch (error) {
+          console.error('Error fetching decks:', error);
+          setTotalDecks(0);
+        }
+        
         // Attempt to get progress data from backend
         let progressEntries = [];
-        try {
-          // This endpoint would need to be added to your backend
-          const userId = user?.id || JSON.parse(localStorage.getItem('user'))?.id;
-          progressEntries = await progressService.getProgressByUserId(userId);
-        } catch (error) {
-          console.error('Error fetching progress from API:', error);
-          // Fall back to local progress data
-          const userId = user?.id || JSON.parse(localStorage.getItem('user'))?.id;
-          progressEntries = progressService.getLocalProgress(userId);
+        if (userId) {
+          try {
+            progressEntries = await progressService.getProgressByUserId(userId);
+            console.log('Fetched progress from API:', progressEntries);
+          } catch (error) {
+            console.error('Error fetching progress from API:', error);
+            // Fall back to local progress data
+            progressEntries = progressService.getLocalProgress(userId);
+            console.log('Using local progress data:', progressEntries);
+          }
+        } else {
+          // Use local progress if no userId
+          const storedUser = localStorage.getItem('user');
+          if (storedUser) {
+            const parsedUser = JSON.parse(storedUser);
+            const id = parsedUser.id || parsedUser.userId;
+            progressEntries = progressService.getLocalProgress(id);
+          }
         }
+        
+        // Calculate total learned cards from local flashcard data
+        let learnedCount = 0;
+        try {
+          const decks = await flashcardService.getDecksByUserId(userId);
+          if (decks && Array.isArray(decks)) {
+            for (const deck of decks) {
+              try {
+                const flashcards = await flashcardService.getFlashcards(deck.id);
+                if (flashcards && Array.isArray(flashcards)) {
+                  const learned = flashcards.filter(card => card.learned).length;
+                  learnedCount += learned;
+                  console.log(`Deck ${deck.title}: ${learned} learned cards`);
+                }
+              } catch (error) {
+                console.warn(`Could not fetch flashcards for deck ${deck.id}`);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error calculating learned cards:', error);
+        }
+        console.log('Total learned cards:', learnedCount);
+        setTotalLearnedCards(learnedCount);
+        
+        // Get user's flashcard IDs to filter progress entries
+        let userFlashcardIds = new Set();
+        try {
+          const decks = await flashcardService.getDecksByUserId(userId);
+          if (decks && Array.isArray(decks)) {
+            for (const deck of decks) {
+              try {
+                const flashcards = await flashcardService.getFlashcards(deck.id);
+                if (flashcards && Array.isArray(flashcards)) {
+                  flashcards.forEach(card => userFlashcardIds.add(card.id));
+                }
+              } catch (error) {
+                console.warn(`Could not fetch flashcards for deck ${deck.id}`);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching user flashcards:', error);
+        }
+        
+        // Filter progress entries to only include user's own flashcards
+        const userProgressEntries = progressEntries.filter(entry => {
+          return entry.flashCardId && userFlashcardIds.has(entry.flashCardId);
+        });
+        
+        console.log(`Filtered progress: ${progressEntries.length} total, ${userProgressEntries.length} belong to user`);
         
         // Fetch flashcard details to show card questions
         let flashcardDetails = {};
         try {
-          // Get all unique flashcard IDs
-          const flashcardIds = [...new Set(progressEntries.map(entry => entry.flashCardId))];
+          // Get all unique flashcard IDs from filtered entries
+          const flashcardIds = [...new Set(userProgressEntries.map(entry => entry.flashCardId))];
           
           // Fetch details for each flashcard
           for (const id of flashcardIds) {
             try {
-              const flashcard = await flashcardService.getFlashcard(id);
+              const flashcard = await flashcardService.getFlashcardById(id);
               if (flashcard) {
                 flashcardDetails[id] = flashcard;
               }
@@ -68,10 +156,11 @@ const ProgressStats = () => {
           console.error('Error fetching flashcard details:', error);
         }
         
-        // Calculate stats
-        const stats = calculateStats(progressEntries);
+        // Calculate stats from filtered user progress
+        const stats = calculateStats(userProgressEntries);
+        console.log('Calculated stats:', stats);
         
-        setProgressData(progressEntries);
+        setProgressData(userProgressEntries);
         setFlashcardMap(flashcardDetails);
         setStats(stats);
       } catch (error) {
@@ -147,8 +236,11 @@ const ProgressStats = () => {
   
   // Get flashcard question text by ID
   const getFlashcardText = (flashcardId) => {
+    if (!flashcardId) {
+      return 'Unknown Card';
+    }
     if (flashcardMap[flashcardId]) {
-      return flashcardMap[flashcardId].term || 'Unknown Term';
+      return flashcardMap[flashcardId].question || flashcardMap[flashcardId].term || 'Unknown Question';
     }
     return `Card #${flashcardId.substring(0, 6)}...`;
   };
@@ -185,20 +277,25 @@ const ProgressStats = () => {
       <div className="bg-white rounded-lg shadow-md p-4 mb-6">
         <h2 className="text-xl font-semibold mb-4">Overall Progress Summary</h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-blue-50 p-4 rounded">
+            <div className="text-gray-600 text-sm">Decks Created</div>
+            <div className="text-3xl font-bold">{totalDecks}</div>
+          </div>
+
+          <div className="bg-purple-50 p-4 rounded">
+            <div className="text-gray-600 text-sm">Cards Learned</div>
+            <div className="text-3xl font-bold">{totalLearnedCards}</div>
+          </div>
+          
+          <div className="bg-green-50 p-4 rounded">
             <div className="text-gray-600 text-sm">Cards Studied</div>
             <div className="text-3xl font-bold">{stats.totalCards}</div>
           </div>
           
-          <div className="bg-green-50 p-4 rounded">
+          <div className="bg-orange-50 p-4 rounded">
             <div className="text-gray-600 text-sm">Average Score</div>
             <div className="text-3xl font-bold">{stats.averageScore}%</div>
-          </div>
-          
-          <div className="bg-purple-50 p-4 rounded">
-            <div className="text-gray-600 text-sm">Average Time per Card</div>
-            <div className="text-3xl font-bold">{formatTime(stats.averageTime)}</div>
           </div>
         </div>
         
@@ -209,22 +306,22 @@ const ProgressStats = () => {
           <div className="flex h-4 rounded-full overflow-hidden">
             <div 
               className="bg-green-500" 
-              style={{ width: `${(stats.excellentCount / stats.totalCards) * 100}%` }}
+              style={{ width: `${stats.totalCards > 0 ? (stats.excellentCount / stats.totalCards) * 100 : 0}%` }}
               title={`Excellent: ${stats.excellentCount} cards`}
             ></div>
             <div 
               className="bg-blue-500" 
-              style={{ width: `${(stats.goodCount / stats.totalCards) * 100}%` }}
+              style={{ width: `${stats.totalCards > 0 ? (stats.goodCount / stats.totalCards) * 100 : 0}%` }}
               title={`Good: ${stats.goodCount} cards`}
             ></div>
             <div 
               className="bg-yellow-500" 
-              style={{ width: `${(stats.fairCount / stats.totalCards) * 100}%` }}
+              style={{ width: `${stats.totalCards > 0 ? (stats.fairCount / stats.totalCards) * 100 : 0}%` }}
               title={`Fair: ${stats.fairCount} cards`}
             ></div>
             <div 
               className="bg-red-500" 
-              style={{ width: `${(stats.needsImprovementCount / stats.totalCards) * 100}%` }}
+              style={{ width: `${stats.totalCards > 0 ? (stats.needsImprovementCount / stats.totalCards) * 100 : 0}%` }}
               title={`Needs Improvement: ${stats.needsImprovementCount} cards`}
             ></div>
           </div>

@@ -42,7 +42,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/").permitAll() // Add this line
+                        .requestMatchers(HttpMethod.GET, "/").permitAll()
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/user/login",
                                 "/admin/login",
@@ -51,8 +52,15 @@ public class SecurityConfig {
                                 "/user/forgot-password",
                                 "/oauth/**"
                         ).permitAll()
-                        .requestMatchers("/user/**","/deck/**").authenticated()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/achievements/**").permitAll()
+                        .requestMatchers("/user/**").authenticated()
+                        .requestMatchers("/decks/**").authenticated()
+                        .requestMatchers("/flashcards/**").authenticated()
+                        .requestMatchers("/progress/**").authenticated()
+                        .requestMatchers("/quiz/**").authenticated()
+                        .requestMatchers("/review/**").authenticated()
+                        .requestMatchers("/admin/**").authenticated()
+                        .anyRequest().denyAll()
 
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
