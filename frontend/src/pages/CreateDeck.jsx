@@ -279,7 +279,7 @@ const CreateDeck = () => {
     };
 
     return (
-        <div className={`min-h-screen ${styles.backgroundSecondary}`}>
+        <div className={`min-h-screen ${styles.border}`}>
             
             {achievement && (
                 <AchievementNotification 
@@ -307,9 +307,9 @@ const CreateDeck = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-8">
                     {/* Deck Information Card */}
-                    <Card>
+                    <Card className={`${styles.card} ${styles.border}`}>
                         <CardHeader>
-                            <CardTitle>Deck Information</CardTitle>
+                            <CardTitle className={styles.text}>Deck Information</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div>
@@ -368,9 +368,9 @@ const CreateDeck = () => {
                     </Card>
 
                     {/* Flashcards Editor Card */}
-                    <Card>
+                    <Card className={`${styles.card} ${styles.border}`}>
                         <CardHeader>
-                            <CardTitle>Flashcards</CardTitle>
+                            <CardTitle className={styles.text}>Flashcards</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-6">
                             {deckData.flashcards.map((flashcard, index) => (

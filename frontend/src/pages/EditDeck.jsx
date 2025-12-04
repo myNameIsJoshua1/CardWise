@@ -10,6 +10,7 @@ const EditDeck = () => {
     const navigate = useNavigate();
     const { user: contextUser } = useUser();
     const { styles } = useTheme();
+    const isDarkMode = styles.background && (styles.background.includes('slate-900') || styles.background.includes('gray-900'));
     const [user, setUser] = useState(contextUser);
     
     const [isLoading, setIsLoading] = useState(true);
@@ -272,9 +273,9 @@ const EditDeck = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-8">
                     {/* Deck Information Card */}
-                    <Card>
+                    <Card className={`${styles.card} ${styles.border}`}>
                         <CardHeader>
-                            <CardTitle>Deck Information</CardTitle>
+                            <CardTitle className={styles.text}>Deck Information</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div>
@@ -287,7 +288,11 @@ const EditDeck = () => {
                                     name="title"
                                     value={deckData.title}
                                     onChange={handleDeckChange}
-                                    className={`${styles.input} w-full px-4 py-2 rounded-md focus:ring-purple-500 focus:border-purple-500`}
+                                    className={`w-full px-4 py-2 rounded-md focus:ring-purple-500 focus:border-purple-500 ${
+                                        isDarkMode 
+                                            ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-400' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    }`}
                                     placeholder="Enter deck title"
                                     required
                                 />
@@ -303,7 +308,11 @@ const EditDeck = () => {
                                     value={deckData.description}
                                     onChange={handleDeckChange}
                                     rows="3"
-                                    className={`${styles.input} w-full px-4 py-2 rounded-md focus:ring-purple-500 focus:border-purple-500`}
+                                    className={`w-full px-4 py-2 rounded-md focus:ring-purple-500 focus:border-purple-500 ${
+                                        isDarkMode 
+                                            ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-400' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    }`}
                                     placeholder="Describe what this deck is about"
                                 ></textarea>
                             </div>
@@ -317,7 +326,11 @@ const EditDeck = () => {
                                     name="category"
                                     value={deckData.category}
                                     onChange={handleDeckChange}
-                                    className={`${styles.input} w-full px-4 py-2 rounded-md focus:ring-purple-500 focus:border-purple-500`}
+                                    className={`w-full px-4 py-2 rounded-md focus:ring-purple-500 focus:border-purple-500 ${
+                                        isDarkMode 
+                                            ? 'bg-slate-800 border-slate-700 text-white' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    }`}
                                 >
                                     <option value="">Select a category</option>
                                     <option value="Language">Language</option>
@@ -333,9 +346,9 @@ const EditDeck = () => {
                     </Card>
 
                     {/* Flashcards Editor Card */}
-                    <Card>
+                    <Card className={`${styles.card} ${styles.border}`}>
                         <CardHeader>
-                            <CardTitle>Flashcards</CardTitle>
+                            <CardTitle className={styles.text}>Flashcards</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-6">
                             {deckData.flashcards.map((flashcard, index) => (
@@ -359,7 +372,11 @@ const EditDeck = () => {
                                                 type="text"
                                                 value={flashcard.term}
                                                 onChange={(e) => handleFlashcardChange(index, 'term', e.target.value)}
-                                                className={`${styles.input} w-full px-4 py-2 rounded-md focus:ring-purple-500 focus:border-purple-500`}
+                                                className={`w-full px-4 py-2 rounded-md focus:ring-purple-500 focus:border-purple-500 ${
+                                                    isDarkMode 
+                                                        ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-400' 
+                                                        : 'bg-white border-gray-300 text-gray-900'
+                                                }`}
                                                 placeholder="Enter question"
                                             />
                                         </div>
@@ -370,7 +387,11 @@ const EditDeck = () => {
                                             <textarea
                                                 value={flashcard.definition}
                                                 onChange={(e) => handleFlashcardChange(index, 'definition', e.target.value)}
-                                                className={`${styles.input} w-full px-4 py-2 rounded-md focus:ring-purple-500 focus:border-purple-500`}
+                                                className={`w-full px-4 py-2 rounded-md focus:ring-purple-500 focus:border-purple-500 ${
+                                                    isDarkMode 
+                                                        ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-400' 
+                                                        : 'bg-white border-gray-300 text-gray-900'
+                                                }`}
                                                 rows="2"
                                                 placeholder="Enter answer"
                                             ></textarea>
@@ -382,7 +403,11 @@ const EditDeck = () => {
                             <button
                                 type="button"
                                 onClick={addFlashcard}
-                                className={`w-full py-3 px-4 mt-4 border-2 border-dashed ${styles.border} ${styles.textSecondary} rounded-md hover:border-purple-500 hover:text-purple-500 transition-all duration-200 flex items-center justify-center font-medium`}
+                                className={`w-full py-3 px-4 mt-4 border-2 border-dashed ${styles.border} ${styles.textSecondary} rounded-md ${
+                                    isDarkMode 
+                                        ? 'hover:border-purple-400 hover:text-purple-400' 
+                                        : 'hover:border-purple-500 hover:text-purple-500'
+                                } transition-all duration-200 flex items-center justify-center font-medium`}
                             >
                                 <span className="mr-2 text-xl">+</span> Add Another Card
                             </button>
@@ -393,7 +418,11 @@ const EditDeck = () => {
                         <button
                             type="button"
                             onClick={handleCancel}
-                            className={`px-6 py-2.5 ${styles.textSecondary} ${styles.card} border ${styles.border} rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium`}
+                            className={`px-6 py-2.5 ${styles.textSecondary} ${styles.card} border ${styles.border} rounded-md ${
+                                isDarkMode 
+                                    ? 'hover:bg-slate-700' 
+                                    : 'hover:bg-gray-100'
+                            } transition-colors font-medium`}
                         >
                             Cancel
                         </button>
