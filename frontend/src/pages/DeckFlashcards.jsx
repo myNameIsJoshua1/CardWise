@@ -12,6 +12,8 @@ const DeckFlashcards = ({ user }) => {
     const [error, setError] = useState('');
     const [deckTitle, setDeckTitle] = useState('');
     const [deckOwnedByCurrentUser, setDeckOwnedByCurrentUser] = useState(false);
+    
+    const isDarkMode = styles.background && (styles.background.includes('slate-900') || styles.background.includes('gray-900'));
 
     useEffect(() => {
         const loadData = async () => {
@@ -107,7 +109,7 @@ const DeckFlashcards = ({ user }) => {
     );
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-6xl mx-auto">
+        <div className={`${styles.card} ${styles.border}`}>
             {/* Header with gradient background */}
             <div className="mb-6 bg-gradient-to-tr from-purple-800 via-orange-500 to-yellow-400 rounded-lg p-6 shadow-md">
                 <div className="flex justify-between items-center">
@@ -204,27 +206,33 @@ const DeckFlashcards = ({ user }) => {
                     </div>
                 </div>
             ) : (
-                <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
+                <div className={`overflow-hidden rounded-lg border shadow-sm ${isDarkMode ? 'border-slate-700' : 'border-gray-200'}`}>
                     <table className="w-full border-collapse">
                         <thead>
-                            <tr className="bg-gradient-to-r from-purple-50 to-orange-50">
-                                <th className="border-b border-gray-200 px-6 py-3 text-left text-sm font-semibold text-gray-700">Question</th>
-                                <th className="border-b border-gray-200 px-6 py-3 text-left text-sm font-semibold text-gray-700">Answer</th>
-                                <th className="border-b border-gray-200 px-6 py-3 text-center text-sm font-semibold text-gray-700">Status</th>
-                                <th className="border-b border-gray-200 px-6 py-3 text-center text-sm font-semibold text-gray-700">Actions</th>
+                            {/* Conditional header background */}
+                            <tr className={isDarkMode ? 'bg-slate-800' : 'bg-gradient-to-r from-purple-50 to-orange-50'}>
+                                {/* Conditional text and border colors for headers */}
+                               <th className={`border-b px-6 py-3 text-left text-sm font-semibold ${isDarkMode ? 'border-slate-700 text-black' : 'border-gray-200 text-gray-700'}`}>Question</th>
+                                <th className={`border-b px-6 py-3 text-left text-sm font-semibold ${isDarkMode ? 'border-slate-700 text-black' : 'border-gray-200 text-gray-700'}`}>Answer</th>
+                                <th className={`border-b px-6 py-3 text-center text-sm font-semibold ${isDarkMode ? 'border-slate-700 text-black' : 'border-gray-200 text-gray-700'}`}>Status</th>
+                                <th className={`border-b px-6 py-3 text-center text-sm font-semibold ${isDarkMode ? 'border-slate-700 text-black' : 'border-gray-200 text-gray-700'}`}>Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200">
+                        <tbody className={`divide-y ${isDarkMode ? 'divide-slate-700 bg-slate-900' : 'divide-gray-200 bg-white'}`}>
                             {flashcards.map((flashcard) => (
-                                <tr key={flashcard.id} className={`hover:bg-gray-50 ${flashcard.learned ? 'bg-green-50/50' : ''}`}>
-                                    <td className="px-6 py-4 text-sm text-gray-800">{flashcard.term}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-800">{flashcard.definition}</td>
+                                <tr key={flashcard.id} className={`${isDarkMode ? 'hover:bg-slate-800/50' : 'hover:bg-gray-50'} ${flashcard.learned ? (isDarkMode ? 'bg-green-900/10' : 'bg-green-50/50') : ''}`}>
+                                    <td className={`px-6 py-4 text-sm ${isDarkMode ? 'text-slate-300' : 'text-gray-800'}`}>{flashcard.term}</td>
+                                    <td className={`px-6 py-4 text-sm ${isDarkMode ? 'text-slate-300' : 'text-gray-800'}`}>{flashcard.definition}</td>
                                     <td className="px-6 py-4 text-center">
                                         <span 
                                             className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
                                                 flashcard.learned 
-                                                    ? 'bg-green-100 text-green-800 border border-green-200' 
-                                                    : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                                                ? (isDarkMode 
+                                                   ? 'bg-green-900/30 text-green-400 border-green-800'
+                                                   : 'bg-green-100 text-green-800 border-green-200')
+                                                : (isDarkMode 
+                                                   ? 'bg-yellow-900/30 text-yellow-400 border-yellow-800'
+                                                   : 'bg-yellow-100 text-yellow-800 border-yellow-200')
                                             }`}
                                         >
                                             {flashcard.learned 
@@ -244,15 +252,23 @@ const DeckFlashcards = ({ user }) => {
                                                 onClick={() => toggleLearned(flashcard.id, flashcard.learned)}
                                                 className={`px-3 py-1.5 rounded-md text-xs font-medium ${
                                                     flashcard.learned 
-                                                        ? 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100 border border-yellow-200' 
-                                                        : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
+                                                        ? (isDarkMode 
+                                                           ? 'bg-yellow-900/30 text-yellow-400 hover:bg-yellow-900/50 border border-yellow-800'
+                                                           : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100 border border-yellow-200')
+                                                        : (isDarkMode 
+                                                           ? 'bg-green-900/30 text-green-400 hover:bg-green-900/50 border border-green-800'
+                                                           : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200')
                                                 } transition-colors`}
                                             >
                                                 {flashcard.learned ? 'Mark as Learning' : 'Mark as Learned'}
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(flashcard.id)}
-                                                className="bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
+                                                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                                                    isDarkMode 
+                                                        ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50 border border-red-800'
+                                                        : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
+                                                }`}
                                             >
                                                 Delete
                                             </button>

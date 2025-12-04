@@ -12,6 +12,8 @@ const DecksList = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const fetchedRef = useRef(false);
+    
+    const isDarkMode = styles.background && (styles.background.includes('slate-900') || styles.background.includes('gray-900'));
 
     useEffect(() => {
         // Prevent multiple API calls
@@ -87,14 +89,14 @@ const DecksList = () => {
             </div>
 
             {decks.length === 0 ? (
-                <div className="text-center py-16 bg-white rounded-lg shadow-sm border border-gray-200">
+                <div className={`text-center py-16 shadow-sm border ${styles.border}`}>
                     <div className="max-w-md mx-auto">
                         <div className="mb-6 w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                             </svg>
                         </div>
-                        <p className="text-gray-600 mb-6">You haven't created any decks yet.</p>
+                        <p className={`${styles.textSecondary} mb-4`}>You haven't created any decks yet.</p>
                         <button
                             onClick={handleCreateNewDeck}
                             className="px-6 py-3 bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white rounded-md shadow-sm hover:shadow transition-all duration-200"
@@ -106,26 +108,26 @@ const DecksList = () => {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {decks.map(deck => (
-                        <div key={deck.id} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-200">
-                            <h3 className="text-xl font-semibold text-gray-800 mb-2">{deck.title}</h3>
-                            <p className="text-sm text-gray-600 mb-4 h-12 overflow-hidden">{deck.description || 'No description'}</p>
+                        <div key={deck.id} className={`${styles.card} ${styles.border} rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-200`}>
+                            <h3 className={`text-xl font-semibold ${styles.text} mb-2`}>{deck.title}</h3>
+                            <p className={`text-sm ${styles.textSecondary} mb-4 h-12 overflow-hidden`}>{deck.description || 'No description'}</p>
                             
-                            <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
-                                <span className="inline-flex items-center bg-purple-50 px-2.5 py-1 rounded-full text-purple-700">
+                            <div className={`flex justify-between items-center text-sm ${styles.textSecondary} mb-4`}>
+                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full ${isDarkMode ? 'bg-purple-900/30 text-purple-400' : 'bg-purple-50 text-purple-700'}`}>
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                                         <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
                                     </svg>
                                     {deck.cardCount || 0} cards
                                 </span>
-                                <span className="inline-flex items-center bg-orange-50 px-2.5 py-1 rounded-full text-orange-700">
+                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full ${isDarkMode ? 'bg-orange-900/30 text-orange-400' : 'bg-orange-50 text-orange-700'}`}>
                                     {deck.category || 'Uncategorized'}
                                 </span>
                             </div>
                             
-                            <div className="pt-4 border-t border-gray-100 flex justify-between items-center">
+                            <div className={`pt-4 border-t ${isDarkMode ? 'border-slate-700' : 'border-gray-100'} flex justify-between items-center`}>
                                 <Link 
                                     to={`/decks/${deck.id}`} 
-                                    className="text-purple-600 hover:text-purple-800 font-medium"
+                                    className={`font-medium ${isDarkMode ? 'text-purple-400 hover:text-purple-300' : 'text-purple-600 hover:text-purple-800'}`}
                                 >
                                     View Cards
                                 </Link>

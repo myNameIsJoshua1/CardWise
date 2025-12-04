@@ -35,7 +35,28 @@ export const flashcardService = {
     }));
     
     // Filter decks by userId
-    return decks.filter(deck => deck.userId === userId);
+    const userDecks = decks.filter(deck => deck.userId === userId);
+    
+    // Fetch flashcard count for each deck
+    const decksWithCardCount = await Promise.all(
+      userDecks.map(async (deck) => {
+        try {
+          const flashcards = await flashcardService.getFlashcards(deck.id);
+          return {
+            ...deck,
+            cardCount: flashcards.length
+          };
+        } catch (error) {
+          console.error(`Failed to fetch flashcards for deck ${deck.id}:`, error);
+          return {
+            ...deck,
+            cardCount: 0
+          };
+        }
+      })
+    );
+    
+    return decksWithCardCount;
   },
 
   getDeck: async (deckId) => {
