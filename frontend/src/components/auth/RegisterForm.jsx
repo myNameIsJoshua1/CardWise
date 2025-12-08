@@ -191,27 +191,10 @@ export function RegisterForm() {
     <div className="w-full max-w-md space-y-8">
       <div>
         <h2 className="text-3xl font-bold text-center">Create an account</h2>
-        <p className="text-center text-gray-600 mt-2">
-          Start your learning journey today
-        </p>
+        <p className="text-center text-gray-600 mt-2">Start your learning journey today</p>
       </div>
-      
-      {generalError && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-red-700">{generalError}</p>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+
+      <form onSubmit={handleSubmit} autoComplete="on" className="mt-8 space-y-6">
         <div className="space-y-4">
           <div>
             <label htmlFor="firstName" className="block text-sm font-medium">
@@ -224,6 +207,7 @@ export function RegisterForm() {
               required
               value={formData.firstName}
               onChange={handleChange}
+              autoComplete="given-name"
               className={`mt-1 block w-full px-3 py-2 border ${errors.firstName ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
               placeholder="First Name"
             />
@@ -242,6 +226,7 @@ export function RegisterForm() {
               required
               value={formData.lastName}
               onChange={handleChange}
+              autoComplete="family-name"
               className={`mt-1 block w-full px-3 py-2 border ${errors.lastName ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
               placeholder="Last Name"
             />
@@ -260,6 +245,7 @@ export function RegisterForm() {
               required
               value={formData.email}
               onChange={handleChange}
+              autoComplete="email"
               className={`mt-1 block w-full px-3 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
               placeholder="Email"
             />
@@ -278,6 +264,7 @@ export function RegisterForm() {
               required
               value={formData.password}
               onChange={handleChange}
+              autoComplete="new-password"
               className={`mt-1 block w-full px-3 py-2 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
               placeholder="Password"
             />
@@ -296,6 +283,7 @@ export function RegisterForm() {
               required
               value={formData.confirmPassword}
               onChange={handleChange}
+              autoComplete="new-password"
               className={`mt-1 block w-full px-3 py-2 border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
               placeholder="Confirm Password"
             />
@@ -305,10 +293,23 @@ export function RegisterForm() {
           </div>
         </div>
 
+        <div className="flex items-start">
+          <input
+            id="terms"
+            name="terms"
+            type="checkbox"
+            required
+            className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded mt-1"
+          />
+          <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
+            I agree to the <button type="button" className="text-purple-600 hover:text-purple-800 underline">Terms of Service</button> and <button type="button" className="text-purple-600 hover:text-purple-800 underline">Privacy Policy</button>
+          </label>
+        </div>
+
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+          className="w-full py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200"
         >
           {isLoading ? (
             <div className="flex items-center justify-center">
@@ -318,7 +319,7 @@ export function RegisterForm() {
               </svg>
               Creating account...
             </div>
-          ) : 'Create account'}
+          ) : 'Create Account'}
         </button>
       </form>
     </div>

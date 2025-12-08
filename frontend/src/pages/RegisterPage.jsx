@@ -2,17 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { userService } from '../services/userService';
 import { useUser } from '../contexts/UserContext';
+import { RegisterForm } from '../components/auth/RegisterForm';
 
 const RegisterPage = () => {
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  // Registration form handled by shared `RegisterForm` component
   const navigate = useNavigate();
   const { user } = useUser();
 
@@ -23,38 +16,7 @@ const RegisterPage = () => {
     }
   }, [user, navigate]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    
-    // Validate password match
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      // Remove confirmPassword from data sent to API
-      const { confirmPassword, ...registerData } = formData;
-      
-      await userService.register(registerData);
-      
-      // Navigate to login with success message
-      navigate('/login', { state: { message: 'Registration successful! Please login with your new account.' } });
-    } catch (err) {
-      console.error('Registration error:', err);
-      setError(err.response?.data?.message || err.message || 'Registration failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Handled by `RegisterForm`
 
   return (
     <div className="flex min-h-screen">
@@ -139,125 +101,7 @@ const RegisterPage = () => {
             <div className="text-2xl font-bold text-gray-800">Sign Up</div>
           </div>
           
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v4a1 1 0 102 0V7zm-1 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm text-red-700">{error}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                <input
-                  id="firstName"
-                  name="firstName"
-                  type="text"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  required
-                  className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
-                  placeholder="First name"
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                <input
-                  id="lastName"
-                  name="lastName"
-                  type="text"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  required
-                  className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
-                  placeholder="Last name"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
-                placeholder="Email address"
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
-                placeholder="Create a password"
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-                className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
-                placeholder="Confirm your password"
-              />
-            </div>
-            
-            <div className="flex items-start">
-              <input
-                id="terms"
-                name="terms"
-                type="checkbox"
-                required
-                className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded mt-1"
-              />
-              <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
-                I agree to the <button type="button" className="text-purple-600 hover:text-purple-800 underline">Terms of Service</button> and <button type="button" className="text-purple-600 hover:text-purple-800 underline">Privacy Policy</button>
-              </label>
-            </div>
-            
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200"
-            >
-              {loading ? (
-                <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Creating account...
-                </span>
-              ) : (
-                'Create Account'
-              )}
-            </button>
-          </form>
+          <RegisterForm />
           
           <div className="mt-8 text-center">
             <button 

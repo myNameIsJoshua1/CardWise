@@ -327,23 +327,52 @@ const UserDashboard = () => {
 
     // Helper function to format review history
     const formatReviewsForDisplay = (reviews) => {
-        if (!reviews || reviews.length === 0) {
-            return [];
-        }
-        
-        // Sort reviews by date (newest first)
+        if (!reviews || reviews.length === 0) return [];
+
+        // Normalize and pick a reliable date field from the review object
+        const pickDate = (rev) => {
+            const candidates = [rev.date, rev.createdAt, rev.timestamp, rev.created_at, rev.time];
+            for (const c of candidates) {
+                if (!c) continue;
+                const d = new Date(c);
+                if (!isNaN(d.getTime())) return d.toISOString();
+            }
+            return null;
+        };
+
+        // Detect whether a review represents a quiz completion
+        const isQuizReview = (rev) => {
+            if (!rev) return false;
+            const t = (rev.type || '').toString().toLowerCase();
+            if (t.includes('quiz')) return true;
+            // Some backends may not set `type` but include score/correct/total
+            if (typeof rev.score === 'number' || (typeof rev.correct === 'number' && typeof rev.total === 'number')) return true;
+            return false;
+        };
+
+        // Try to extract a friendly deck name from several possible properties
+        const pickDeckName = (rev) => {
+            return rev.deckName || rev.deckTitle || rev.deck?.title || rev.deck?.name || rev.deck_name || rev.collectionName || 'a deck';
+        };
+
+        // Sort reviews by the picked date (newest first). Reviews without dates float to the bottom.
         const sortedReviews = [...reviews].sort((a, b) => {
-            return new Date(b.date) - new Date(a.date);
+            const da = pickDate(a);
+            const db = pickDate(b);
+            if (da && db) return new Date(db) - new Date(da);
+            if (da) return -1;
+            if (db) return 1;
+            return 0;
         });
-        
-        // Take most recent 5 reviews
+
         const recentReviews = sortedReviews.slice(0, 5);
-        
-        // Format for display
-        return recentReviews.map(review => {
-            const action = review.type === 'quiz' ? 'Completed quiz for' : 'Studied';
-            const timeAgo = formatTimeAgo(review.date);
-            return `${action} ${review.deckName || 'a deck'} - ${timeAgo}`;
+
+        return recentReviews.map((review) => {
+            const action = isQuizReview(review) ? 'Completed quiz for' : 'Studied';
+            const dateStr = pickDate(review) || review.date || review.createdAt || null;
+            const timeAgo = dateStr ? formatTimeAgo(dateStr) : 'just now';
+            const deckName = pickDeckName(review);
+            return `${action} ${deckName} - ${timeAgo}`;
         });
     };
 
