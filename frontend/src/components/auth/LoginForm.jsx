@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { userService } from '../../services/userService';
 import api from '../../services/api';
+import { useToast } from '../../hooks/use-toast';
 
 export function LoginForm({ setIsLoggedIn, setUser }) {
   const [email, setEmail] = useState('');
@@ -9,6 +10,7 @@ export function LoginForm({ setIsLoggedIn, setUser }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { addToast } = useToast();
 
   // Function to handle errors and display appropriate messages
   const handleError = (err) => {
@@ -116,9 +118,12 @@ export function LoginForm({ setIsLoggedIn, setUser }) {
               console.log("Updating user context with complete data:", fullUserData);
               localStorage.setItem('user', JSON.stringify(fullUserData));
               setUser(fullUserData);
+              // show toast
+              try { addToast({ title: 'Signed in', description: `Welcome back, ${fullUserData.firstName || fullUserData.email || 'user'}!` }); } catch(e){}
             } else {
               console.warn("API returned empty data for user profile");
               setUser(response);
+              try { addToast({ title: 'Signed in', description: 'Welcome back!' }); } catch(e){}
             }
           } else {
             console.warn("No userId available for profile fetch");
@@ -128,6 +133,7 @@ export function LoginForm({ setIsLoggedIn, setUser }) {
           console.error("Failed to fetch complete profile:", profileError);
           // Fall back to basic data
           setUser(response);
+          try { addToast({ title: 'Signed in', description: 'Welcome back! (profile fetch failed)' }); } catch(e){}
         }
         
         setIsLoggedIn(true);
@@ -142,6 +148,7 @@ export function LoginForm({ setIsLoggedIn, setUser }) {
       }
     } catch (err) {
       handleError(err);
+      try { addToast({ title: 'Sign in failed', description: err.response?.data?.message || err.message || 'Invalid credentials', variant: 'destructive' }); } catch(e){}
     } finally {
       setLoading(false);
     }
