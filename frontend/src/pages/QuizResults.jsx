@@ -7,7 +7,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import AchievementNotification from '../components/AchievementNotification';
 import { useOptimization } from '../components/PerformanceMonitor';
 
-const DEFAULT_CONFETTI_COUNT = 24;
+const DEFAULT_CONFETTI_COUNT = 100;
 
 const QuizResults = () => {
   const { deckId } = useParams();
@@ -257,7 +257,7 @@ const QuizResults = () => {
   const grade = getGrade(results.score);
 
   return (
-    <div className={`min-h-screen ${styles.backgroundSecondary} py-8 px-4`}>
+    <div className={`min-h-screen ${styles.background} py-8 px-4`}>
       {/* Achievement Notification */}
       {achievement && (
         <AchievementNotification achievement={achievement} onClose={() => setAchievement(null)} />
@@ -484,7 +484,7 @@ const QuizResults = () => {
                         key={index} 
                         className={`p-6 rounded-xl ${optimizationSettings.useShadowEffects ? 'shadow-sm' : 'border'} border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800/50`}
                       >
-                        <div className="flex justify-between">
+                        <div className={`${styles.border} flex justify-between`}>
                           <span className={`font-medium ${styles.text}`}>Question {index + 1}</span>
                           <span className="text-red-600 dark:text-red-400 flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -495,14 +495,14 @@ const QuizResults = () => {
                         </div>
                         <p className={`mt-3 ${styles.text} font-medium`}>{question.question}</p>
                         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="bg-white/60 dark:bg-gray-900/40 p-3 rounded-lg border border-red-200 dark:border-red-800">
-                            <div className={`text-sm ${styles.textMuted}`}>Your answer:</div>
+                          <div className={`${styles.background} p-3 rounded-lg border border-red-200 dark:border-red-800`}>
+                            <div className={`text-sm ${styles.text}`}>Your answer:</div>
                             <div className="font-medium text-red-600 dark:text-red-400">
                               {question.userAnswer || '(No answer)'}
                             </div>
                           </div>
-                          <div className="bg-white/60 dark:bg-gray-900/40 p-3 rounded-lg border border-green-200 dark:border-green-800">
-                            <div className={`text-sm ${styles.textMuted}`}>Correct answer:</div>
+                          <div className={`${styles.background} p-3 rounded-lg border border-green-200 dark:border-green-800`}>
+                            <div className={`text-sm ${styles.text}`}>Correct answer:</div>
                             <div className="font-medium text-green-600 dark:text-green-400">{question.correctAnswer}</div>
                           </div>
                         </div>
