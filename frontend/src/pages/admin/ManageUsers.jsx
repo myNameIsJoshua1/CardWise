@@ -1,6 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { userService } from '../services/userService';
+import { userService } from '../../services/userService';
+import LoadingState from '../../components/shared/LoadingState';
+import ErrorState from '../../components/shared/ErrorState';
+import Table from '../../components/shared/Table';
+import Button from '../../components/ui/button';
 
 const ManageUsers = () => {
     const [users, setUsers] = useState([]);
@@ -78,8 +82,8 @@ const ManageUsers = () => {
         setFilteredUsers(filtered);
     };
 
-    if (loading) return <p className="text-center text-gray-500">Loading users...</p>;
-    if (error) return <p className="text-center text-red-500">{error}</p>;
+    if (loading) return <LoadingState text="Loading users..." />;
+    if (error) return <ErrorState message={error} />;
 
     return (
         <div className="flex justify-center items-center bg-gray-100">
@@ -118,51 +122,40 @@ const ManageUsers = () => {
                     </div>
                 </div>
 
-                {filteredUsers.length === 0 ? (
-                    <p className="text-center text-gray-500">No users found.</p>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full border-collapse border border-gray-300">
-                            <thead>
-                                <tr className="bg-gray-200">
-                                    <th className="border border-gray-300 px-4 py-2 text-left">ID</th>
-                                    <th className="border border-gray-300 px-4 py-2 text-left">Name</th>
-                                    <th className="border border-gray-300 px-4 py-2 text-left">Email</th>
-                                    <th className="border border-gray-300 px-4 py-2 text-left">Role</th>
-                                    <th className="border border-gray-300 px-4 py-2 text-center">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredUsers.map((user) => (
-                                    <tr key={user.userId} className="hover:bg-gray-100">
-                                        <td className="border border-gray-300 px-4 py-2">{user.userId}</td>
-                                        <td className="border border-gray-300 px-4 py-2">
-                                            {user.firstName} {user.lastName}
-                                        </td>
-                                        <td className="border border-gray-300 px-4 py-2">{user.email}</td>
-                                        <td className="border border-gray-300 px-4 py-2">{user.role || 'Empty'}</td>
-                                        <td className="border border-gray-300 px-4 py-2 text-center">
-                                            <div className="flex justify-center space-x-2">
-                                                <button
-                                                    onClick={() => handleMore(user.userId)}
-                                                    className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-                                                >
-                                                    More
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(user.userId)}
-                                                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                                                >
-                                                    Delete
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                <Table
+                    columns={[
+                        { header: 'ID', field: 'userId' },
+                        { 
+                            header: 'Name', 
+                            render: (user) => `${user.firstName} ${user.lastName}` 
+                        },
+                        { header: 'Email', field: 'email' },
+                        { 
+                            header: 'Role', 
+                            render: (user) => user.role || 'Empty' 
+                        }
+                    ]}
+                    data={filteredUsers}
+                    actions={(user) => (
+                        <>
+                            <Button 
+                                variant="success" 
+                                size="sm" 
+                                onClick={() => handleMore(user.userId)}
+                            >
+                                More
+                            </Button>
+                            <Button 
+                                variant="danger" 
+                                size="sm" 
+                                onClick={() => handleDelete(user.userId)}
+                            >
+                                Delete
+                            </Button>
+                        </>
+                    )}
+                    emptyMessage="No users found."
+                />
             </div>
         </div>
     );

@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { flashcardService } from '../services/flashcardService';
-import { useUser } from '../contexts/UserContext';
-import { useTheme } from '../contexts/ThemeContext';
-import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
+import { flashcardService } from '../../services/flashcardService';
+import { useUser } from '../../contexts/UserContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
+import { FlashcardFormEditor, DeckInfoForm } from '../../components/shared/FlashcardFormEditor';
+import LoadingState from '../../components/shared/LoadingState';
+import AlertMessage from '../../components/shared/AlertMessage';
+import Button from '../../components/ui/button';
 
 const EditDeck = () => {
     const { deckId } = useParams();
@@ -245,11 +249,7 @@ const EditDeck = () => {
     };
 
     if (isLoading) {
-        return (
-            <div className={`min-h-screen ${styles.backgroundSecondary} flex justify-center items-center`}>
-                <div className={`text-xl ${styles.text}`}>Loading deck data...</div>
-            </div>
-        );
+        return <LoadingState text="Loading deck data..." />;
     }
 
     return (
@@ -259,17 +259,8 @@ const EditDeck = () => {
                     <h1 className={`text-2xl font-bold ${styles.text}`}>Edit Flashcard Deck</h1>
                 </div>
 
-                {error && (
-                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                        {error}
-                    </div>
-                )}
-
-                {success && (
-                    <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                        {success}
-                    </div>
-                )}
+                {error && <AlertMessage type="error" message={error} />}
+                {success && <AlertMessage type="success" message={success} />}
 
                 <form onSubmit={handleSubmit} className="space-y-8">
                     {/* Deck Information Card */}
@@ -346,101 +337,30 @@ const EditDeck = () => {
                     </Card>
 
                     {/* Flashcards Editor Card */}
-                    <Card className={`${styles.card} ${styles.border}`}>
-                        <CardHeader>
-                            <CardTitle className={styles.text}>Flashcards</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            {deckData.flashcards.map((flashcard, index) => (
-                                <div key={index} className={`p-4 border rounded-md ${styles.card} ${styles.border} shadow-sm`}>
-                                    <div className="flex justify-between items-center mb-2">
-                                        <h3 className={`text-lg font-medium ${styles.text}`}>Card {index + 1}</h3>
-                                        <button
-                                            type="button"
-                                            onClick={() => removeFlashcard(index)}
-                                            className="text-red-500 hover:text-red-700 transition-colors"
-                                        >
-                                            Remove
-                                        </button>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className={`block text-sm font-medium ${styles.textSecondary} mb-1`}>
-                                                Question
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={flashcard.term}
-                                                onChange={(e) => handleFlashcardChange(index, 'term', e.target.value)}
-                                                className={`w-full px-4 py-2 rounded-md focus:ring-purple-500 focus:border-purple-500 ${
-                                                    isDarkMode 
-                                                        ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-400' 
-                                                        : 'bg-white border-gray-300 text-gray-900'
-                                                }`}
-                                                placeholder="Enter question"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className={`block text-sm font-medium ${styles.textSecondary} mb-1`}>
-                                                Answer
-                                            </label>
-                                            <textarea
-                                                value={flashcard.definition}
-                                                onChange={(e) => handleFlashcardChange(index, 'definition', e.target.value)}
-                                                className={`w-full px-4 py-2 rounded-md focus:ring-purple-500 focus:border-purple-500 ${
-                                                    isDarkMode 
-                                                        ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-400' 
-                                                        : 'bg-white border-gray-300 text-gray-900'
-                                                }`}
-                                                rows="2"
-                                                placeholder="Enter answer"
-                                            ></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-
-                            <button
-                                type="button"
-                                onClick={addFlashcard}
-                                className={`w-full py-3 px-4 mt-4 border-2 border-dashed ${styles.border} ${styles.textSecondary} rounded-md ${
-                                    isDarkMode 
-                                        ? 'hover:border-purple-400 hover:text-purple-400' 
-                                        : 'hover:border-purple-500 hover:text-purple-500'
-                                } transition-all duration-200 flex items-center justify-center font-medium`}
-                            >
-                                <span className="mr-2 text-xl">+</span> Add Another Card
-                            </button>
-                        </CardContent>
-                    </Card>
+                    <FlashcardFormEditor
+                        flashcards={deckData.flashcards}
+                        onChange={handleFlashcardChange}
+                        onAdd={addFlashcard}
+                        onRemove={removeFlashcard}
+                        styles={styles}
+                    />
 
                     <div className="flex justify-end gap-4 pt-6">
-                        <button
+                        <Button
                             type="button"
+                            variant="secondary"
                             onClick={handleCancel}
-                            className={`px-6 py-2.5 ${styles.textSecondary} ${styles.card} border ${styles.border} rounded-md ${
-                                isDarkMode 
-                                    ? 'hover:bg-slate-700' 
-                                    : 'hover:bg-gray-100'
-                            } transition-colors font-medium`}
                         >
                             Cancel
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type="submit"
                             disabled={isSubmitting}
-                            className="px-8 py-2.5 bg-gradient-to-r from-purple-600 to-orange-500 text-white rounded-md hover:from-purple-700 hover:to-orange-600 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium"
+                            variant="gradient"
+                            size="lg"
                         >
-                            {isSubmitting ? (
-                                <span className="flex items-center">
-                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    Saving...
-                                </span>
-                            ) : 'Save Changes'}
-                        </button>
+                            {isSubmitting ? 'Saving...' : 'Save Changes'}
+                        </Button>
                     </div>
                 </form>
             </div>

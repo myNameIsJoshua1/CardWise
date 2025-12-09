@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { flashcardService } from '../services/flashcardService';
-import { useTheme } from '../contexts/ThemeContext';
+import { flashcardService } from '../../services/flashcardService';
+import { useTheme } from '../../contexts/ThemeContext';
+import LoadingState from '../../components/shared/LoadingState';
+import ErrorState from '../../components/shared/ErrorState';
+import PageHeader from '../../components/shared/PageHeader';
+import EmptyStateCard from '../../components/shared/EmptyStateCard';
+import Button from '../../components/ui/button';
 
 const DeckFlashcards = ({ user }) => {
     const { deckId } = useParams();
@@ -88,41 +93,18 @@ const DeckFlashcards = ({ user }) => {
         }
     };
 
-    if (loading) return (
-        <div className="flex justify-center items-center h-64">
-            <div className="text-xl text-purple-600 animate-pulse">Loading flashcards...</div>
-        </div>
-    );
+    if (loading) return <LoadingState text="Loading flashcards..." />;
     
-    if (error) return (
-        <div className="max-w-lg mx-auto mt-10 rounded-lg p-4 shadow-md bg-white">
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                {error}
-            </div>
-            <button 
-                onClick={() => navigate('/dashboard')}
-                className="w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white rounded-md shadow-sm transition-all duration-200"
-            >
-                Return to Dashboard
-            </button>
-        </div>
-    );
+    if (error) return <ErrorState message={error} onBack={() => navigate('/dashboard')} backText="Return to Dashboard" />;
 
     return (
         <div className={`${styles.card} ${styles.border}`}>
-            {/* Header with gradient background */}
-            <div className="mb-6 bg-gradient-to-tr from-purple-800 via-orange-500 to-yellow-400 rounded-lg p-6 shadow-md">
-                <div className="flex justify-between items-center">
-                    <h1 className="text-2xl font-bold text-white">{deckTitle || `Deck ${deckId}`}</h1>
-                    <div className="flex space-x-2">
+            <PageHeader
+                title={deckTitle || `Deck ${deckId}`}
+                actions={
+                    <>
                         <button
-                            onClick={() => {
-                                if (deckId) {
-                                    navigate(`/quiz/${deckId}`);
-                                } else {
-                                    alert('Cannot start quiz: Invalid deck ID');
-                                }
-                            }}
+                            onClick={() => navigate(`/quiz/${deckId}`)}
                             className="flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-md transition-colors shadow-sm text-sm font-medium"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -131,13 +113,7 @@ const DeckFlashcards = ({ user }) => {
                             Take Quiz
                         </button>
                         <button
-                            onClick={() => {
-                                if (deckId) {
-                                    navigate(`/study/${deckId}`);
-                                } else {
-                                    alert('Cannot start study session: Invalid deck ID');
-                                }
-                            }}
+                            onClick={() => navigate(`/study/${deckId}`)}
                             className="flex items-center px-4 py-2 bg-white text-purple-700 hover:bg-purple-50 rounded-md shadow-sm transition-colors text-sm font-medium"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -145,9 +121,9 @@ const DeckFlashcards = ({ user }) => {
                             </svg>
                             Study Deck
                         </button>
-                    </div>
-                </div>
-            </div>
+                    </>
+                }
+            />
             
             <div className="flex justify-between items-center mb-6">
                 <div>
@@ -189,22 +165,16 @@ const DeckFlashcards = ({ user }) => {
             </div>
             
             {flashcards.length === 0 ? (
-                <div className={`text-center py-16 ${styles.backgroundSecondary} rounded-lg shadow-inner`}>
-                    <div className="max-w-md mx-auto">
-                        <div className="mb-6 w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                            </svg>
-                        </div>
-                        <p className="text-gray-600 mb-6">No flashcards found in this deck.</p>
-                        <button
-                            onClick={() => navigate(`/decks/${deckId}/edit`)}
-                            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white rounded-md shadow-sm hover:shadow transition-all duration-200"
-                        >
-                            Create Flashcards
-                        </button>
-                    </div>
-                </div>
+                <EmptyStateCard
+                    icon={
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                        </svg>
+                    }
+                    message="No flashcards found in this deck."
+                    actionText="Create Flashcards"
+                    onAction={() => navigate(`/decks/${deckId}/edit`)}
+                />
             ) : (
                 <div className={`overflow-hidden rounded-lg border shadow-sm ${isDarkMode ? 'border-slate-700' : 'border-gray-200'}`}>
                     <table className="w-full border-collapse">
