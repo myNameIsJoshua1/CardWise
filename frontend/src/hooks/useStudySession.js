@@ -1,15 +1,21 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { flashcardService } from '../services/flashcardService';
 import { achievementService } from '../services/achievementService';
 
 export const useStudySession = (flashcards, user) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
-  const [cardsLearned, setCardsLearned] = useState(() => {
-    return flashcards.filter(card => card.learned).length;
-  });
+  const [cardsLearned, setCardsLearned] = useState(0);
   const [achievement, setAchievement] = useState(null);
-  const [localFlashcards, setLocalFlashcards] = useState(flashcards);
+  const [localFlashcards, setLocalFlashcards] = useState([]);
+
+  // Update local flashcards when flashcards prop changes
+  useEffect(() => {
+    if (flashcards && flashcards.length > 0) {
+      setLocalFlashcards(flashcards);
+      setCardsLearned(flashcards.filter(card => card.learned).length);
+    }
+  }, [flashcards]);
 
   const handleNext = useCallback(() => {
     if (currentIndex < localFlashcards.length - 1) {
