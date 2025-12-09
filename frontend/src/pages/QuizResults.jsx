@@ -484,7 +484,7 @@ const QuizResults = () => {
                         key={index} 
                         className={`p-6 rounded-xl ${optimizationSettings.useShadowEffects ? 'shadow-sm' : 'border'} border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800/50`}
                       >
-                        <div className={`${styles.border} flex justify-between`}>
+                        <div className="flex justify-between">
                           <span className={`font-medium ${styles.text}`}>Question {index + 1}</span>
                           <span className="text-red-600 dark:text-red-400 flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
