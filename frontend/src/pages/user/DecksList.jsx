@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { flashcardService } from '../services/flashcardService';
-import { useUser } from '../contexts/UserContext';
-import { useTheme } from '../contexts/ThemeContext';
+import { flashcardService } from '../../services/flashcardService';
+import { useUser } from '../../contexts/UserContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import PageHeader from '../../components/shared/PageHeader';
+import EmptyStateCard from '../../components/shared/EmptyStateCard';
+import LoadingState from '../../components/shared/LoadingState';
+import ErrorState from '../../components/shared/ErrorState';
 
 const DecksList = () => {
     const navigate = useNavigate();
@@ -48,34 +52,15 @@ const DecksList = () => {
         navigate('/decks/new');
     };
 
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center h-64">
-                <div className="animate-pulse text-purple-600 font-medium">Loading your decks...</div>
-            </div>
-        );
-    }
+    if (loading) return <LoadingState text="Loading your decks..." />;
 
-    if (error) {
-        return (
-            <div className="max-w-lg mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-                <div className="text-center py-4 text-red-500 border border-red-200 rounded bg-red-50 mb-4">{error}</div>
-                <button
-                    onClick={() => navigate('/dashboard')}
-                    className="w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white rounded-md shadow-sm transition-all duration-200"
-                >
-                    Return to Dashboard
-                </button>
-            </div>
-        );
-    }
+    if (error) return <ErrorState message={error} onBack={() => navigate('/dashboard')} backText="Return to Dashboard" />;
 
     return (
         <div className={`container mx-auto p-6 ${styles.background}`}>
-            {/* Page header with colorful background */}
-            <div className="mb-8 bg-gradient-to-tr from-purple-800 via-orange-500 to-yellow-400 rounded-lg p-6 shadow-md">
-                <div className="flex justify-between items-center">
-                    <h1 className="text-2xl font-bold text-white">My Decks</h1>
+            <PageHeader
+                title="My Decks"
+                actions={
                     <button
                         onClick={handleCreateNewDeck}
                         className="px-4 py-2 bg-white text-purple-700 rounded-md hover:bg-purple-50 shadow-sm transition-colors flex items-center"
@@ -85,26 +70,20 @@ const DecksList = () => {
                         </svg>
                         Create New Deck
                     </button>
-                </div>
-            </div>
+                }
+            />
 
             {decks.length === 0 ? (
-                <div className={`text-center py-16 shadow-sm border ${styles.border}`}>
-                    <div className="max-w-md mx-auto">
-                        <div className="mb-6 w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                            </svg>
-                        </div>
-                        <p className={`${styles.textSecondary} mb-4`}>You haven't created any decks yet.</p>
-                        <button
-                            onClick={handleCreateNewDeck}
-                            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white rounded-md shadow-sm hover:shadow transition-all duration-200"
-                        >
-                            Create Your First Deck
-                        </button>
-                    </div>
-                </div>
+                <EmptyStateCard
+                    icon={
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                    }
+                    message="You haven't created any decks yet."
+                    actionText="Create Your First Deck"
+                    onAction={handleCreateNewDeck}
+                />
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {decks.map(deck => (

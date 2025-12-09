@@ -1,6 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { userService } from '../services/userService';
+import { userService } from '../../services/userService';
+import LoadingState from '../../components/shared/LoadingState';
+import ErrorState from '../../components/shared/ErrorState';
+import FormField from '../../components/shared/FormField';
+import Button from '../../components/ui/button';
 
 const EditUser = () => {
     const { userId } = useParams();
@@ -48,45 +52,37 @@ const EditUser = () => {
         }
     };
 
-    if (loading) return <p>Loading user details...</p>;
-    if (error) return <p className="text-red-500">{error}</p>;
+    if (loading) return <LoadingState text="Loading user details..." />;
+    if (error) return <ErrorState message={error} />;
 
     return (
         <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-lg">
             <h1 className="text-2xl font-bold mb-4">Edit User</h1>
             <form onSubmit={handleSubmit}>
+                <FormField
+                    label="First Name"
+                    name="firstName"
+                    value={user.firstName}
+                    onChange={handleChange}
+                />
+                
+                <FormField
+                    label="Last Name"
+                    name="lastName"
+                    value={user.lastName}
+                    onChange={handleChange}
+                />
+                
+                <FormField
+                    label="Email"
+                    name="email"
+                    type="email"
+                    value={user.email}
+                    onChange={handleChange}
+                />
+                
                 <div className="mb-4">
-                    <label className="block text-gray-700">First Name</label>
-                    <input
-                        type="text"
-                        name="firstName"
-                        value={user.firstName}
-                        onChange={handleChange}
-                        className="w-full border border-gray-300 p-2 rounded"
-                    />
-                </div>
-                <div className="mb-4">
-                    <label className="block text-gray-700">Last Name</label>
-                    <input
-                        type="text"
-                        name="lastName"
-                        value={user.lastName}
-                        onChange={handleChange}
-                        className="w-full border border-gray-300 p-2 rounded"
-                    />
-                </div>
-                <div className="mb-4">
-                    <label className="block text-gray-700">Email</label>
-                    <input
-                        type="email"
-                        name="email"
-                        value={user.email}
-                        onChange={handleChange}
-                        className="w-full border border-gray-300 p-2 rounded"
-                    />
-                </div>
-                <div className="mb-4">
-                    <label className="block text-gray-700">Role</label>
+                    <label className="block text-gray-700 mb-1 font-medium">Role</label>
                     <select
                         name="role"
                         value={user.role}
@@ -97,12 +93,10 @@ const EditUser = () => {
                         <option value="EDUCATOR">Educator</option>
                     </select>
                 </div>
-                <button
-                    type="submit"
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                >
+                
+                <Button type="submit">
                     Save Changes
-                </button>
+                </Button>
             </form>
         </div>
     );

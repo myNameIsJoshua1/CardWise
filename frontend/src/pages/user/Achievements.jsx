@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { achievementService } from '../services/achievementService';
-import { useUser } from '../contexts/UserContext';
-import { useTheme } from '../contexts/ThemeContext';
+import { achievementService } from '../../services/achievementService';
+import { useUser } from '../../contexts/UserContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import LoadingState from '../../components/shared/LoadingState';
+import ErrorState from '../../components/shared/ErrorState';
+import AchievementCard from '../../components/shared/AchievementCard';
+import EmptyStateCard from '../../components/shared/EmptyStateCard';
 
 // All possible achievements in the game
 const ALL_ACHIEVEMENTS = [
@@ -174,88 +178,34 @@ const Achievements = () => {
     }
   };
   
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-xl">Loading achievements...</div>
-      </div>
-    );
-  }
+  if (loading) return <LoadingState text="Loading achievements..." />;
   
-  if (error) {
-    return (
-      <div className="bg-white p-8 rounded-lg shadow-md max-w-md mx-auto mt-12 text-center">
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-        <button 
-          onClick={() => navigate('/dashboard')}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          Back to Dashboard
-        </button>
-      </div>
-    );
-  }
+  if (error) return <ErrorState message={error} onBack={() => navigate('/dashboard')} backText="Back to Dashboard" />;
 
   return (
     <div className={`max-w-4xl mx-auto p-4 ${styles.background}`}>
       <h1 className={`text-2xl font-bold mb-6 ${styles.text}`}>Your Achievements</h1>
       
       {achievements.length === 0 ? (
-        <div className={`${styles.card} rounded-lg shadow-md p-8 text-center`}>
-          <svg xmlns="http://www.w3.org/2000/svg" className={`h-16 w-16 mx-auto ${styles.textMuted} mb-4`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
-          <h2 className={`text-xl font-semibold mb-2 ${styles.text}`}>No Achievements Yet</h2>
-          <p className={`${styles.textSecondary} mb-4`}>
-            Complete quizzes and study decks to unlock achievements!
-          </p>
-          <button
-            onClick={() => navigate('/decks')}
-            className={`${styles.button} text-white px-4 py-2 rounded hover:opacity-90`}
-          >
-            Browse Decks
-          </button>
-        </div>
+        <EmptyStateCard
+          icon={
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          }
+          title="No Achievements Yet"
+          message="Complete quizzes and study decks to unlock achievements!"
+          actionText="Browse Decks"
+          onAction={() => navigate('/decks')}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {achievements.map((achievement) => (
-            <div
+            <AchievementCard
               key={achievement.id}
-              className={`rounded-lg shadow-md p-4 border-l-4 transition-all ${
-                achievement.unlocked
-                  ? `${styles.card} border-green-500`
-                  : `${styles.backgroundSecondary} ${styles.border} opacity-60`
-              }`}
-            >
-              <div className="flex items-start">
-                <div className={`rounded-full p-3 mr-3 text-2xl flex items-center justify-center ${
-                  achievement.unlocked ? 'bg-green-100' : 'bg-gray-300'
-                }`}>
-                  {achievement.icon}
-                </div>
-                <div className="flex-1">
-                  <h3 className={`font-semibold text-lg ${
-                    achievement.unlocked ? styles.text : styles.textMuted
-                  }`}>
-                    {achievement.title}
-                  </h3>
-                  <p className={`text-sm mb-2 ${
-                    achievement.unlocked ? styles.textSecondary : styles.textMuted
-                  }`}>
-                    {achievement.description}
-                  </p>
-                  <p className={`text-xs ${
-                    achievement.unlocked ? styles.success : styles.textMuted
-                  }`}>
-                    {achievement.unlocked
-                      ? `Unlocked: ${formatDate(achievement.unlockedAt)}`
-                      : 'Locked'}
-                  </p>
-                </div>
-              </div>
-            </div>
+              achievement={achievement}
+              formatDate={formatDate}
+            />
           ))}
         </div>
       )}

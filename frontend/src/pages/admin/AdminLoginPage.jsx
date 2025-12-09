@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { userService } from '../services/userService';
-import AdminLoginForm from '../components/AdminLoginForm';
+import { userService } from '../../services/userService';
+import AdminLoginForm from '../../components/AdminLoginForm';
 
 const AdminLoginPage = ({ setIsLoggedIn, setAdmin }) => {
     const navigate = useNavigate();

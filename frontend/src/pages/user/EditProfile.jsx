@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '../contexts/UserContext';
-import { userService } from '../services/userService';
+import { useUser } from '../../contexts/UserContext';
+import { userService } from '../../services/userService';
+import LoadingState from '../../components/shared/LoadingState';
+import ErrorState from '../../components/shared/ErrorState';
+import FormField from '../../components/shared/FormField';
+import Button from '../../components/ui/button';
 
 const EditProfile = () => {
     const navigate = useNavigate();
@@ -150,11 +154,7 @@ const EditProfile = () => {
     };
 
     if (isLoading) {
-        return (
-            <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-            </div>
-        );
+        return <LoadingState text="Loading profile..." />;
     }
 
     return (
@@ -179,87 +179,57 @@ const EditProfile = () => {
                     )}
                     
                     <form onSubmit={handleSubmit}>
-                        <div className="mb-4">
-                            <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
-                                First Name
-                            </label>
-                            <input
-                                type="text"
-                                id="firstName"
-                                name="firstName"
-                                value={formData.firstName}
-                                onChange={handleChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                required
-                            />
-                        </div>
+                        <FormField
+                            label="First Name"
+                            name="firstName"
+                            value={formData.firstName}
+                            onChange={handleChange}
+                            required
+                        />
+                        
+                        <FormField
+                            label="Last Name"
+                            name="lastName"
+                            value={formData.lastName}
+                            onChange={handleChange}
+                            required
+                        />
                         
                         <div className="mb-4">
-                            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
-                                Last Name
-                            </label>
-                            <input
-                                type="text"
-                                id="lastName"
-                                name="lastName"
-                                value={formData.lastName}
-                                onChange={handleChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                required
-                            />
-                        </div>
-                        
-                        <div className="mb-4">
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                                Email (Read Only)
-                            </label>
-                            <input
-                                type="email"
-                                id="email"
+                            <FormField
+                                label="Email (Read Only)"
                                 name="email"
+                                type="email"
                                 value={formData.email}
                                 disabled
-                                className="w-full px-3 py-2 border border-gray-200 bg-gray-50 rounded-md text-gray-500"
                             />
                             <p className="text-xs text-gray-500 mt-1">Email cannot be changed. Please contact support if you need to update your email.</p>
                         </div>
                         
                         <div className="mb-6">
-                            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
-                                Role (Read Only)
-                            </label>
-                            <input
-                                type="text"
-                                id="role"
+                            <FormField
+                                label="Role (Read Only)"
                                 name="role"
                                 value={formData.role || "Student"}
                                 disabled
-                                className="w-full px-3 py-2 border border-gray-200 bg-gray-50 rounded-md text-gray-500"
                             />
                             <p className="text-xs text-gray-500 mt-1">Role cannot be changed. Please contact an administrator if you need a role change.</p>
                         </div>
                         
                         <div className="flex justify-between">
-                            <button
+                            <Button
                                 type="button"
+                                variant="secondary"
                                 onClick={() => navigate('/profile')}
-                                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition duration-200"
                             >
                                 Cancel
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200 flex items-center ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
                             >
-                                {isSubmitting && (
-                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                )}
-                                Save Changes
-                            </button>
+                                {isSubmitting ? 'Saving...' : 'Save Changes'}
+                            </Button>
                         </div>
                     </form>
                 </div>
