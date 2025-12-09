@@ -67,7 +67,15 @@ export const DecksSection = ({ decks, error }) => {
         <div className="lg:col-span-2">
             <div className="flex justify-between items-center mb-4">
                 <h2 className={`text-xl font-bold ${styles.text}`}>Your Decks</h2>
-                <Link to="/decks/new" className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700"> + Create new deck</Link>
+               <Link
+                            to="/decks/new"
+                            className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 shadow-sm hover:shadow transition-all duration-200"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                            </svg>
+                            Create new deck
+                        </Link>
             </div>
             
             {error ? (
@@ -87,7 +95,6 @@ export const DecksSection = ({ decks, error }) => {
                                 <div className="flex space-x-2">
                                     <Link to={`/decks/${deck.id}`} className="text-xs px-3 py-1.5 text-purple-700 bg-purple-50 rounded-md hover:bg-purple-100 transition-colors">View</Link>
                                     <Link to={`/study/${deck.id}`} className="text-xs px-3 py-1.5 text-orange-700 bg-orange-50 rounded-md hover:bg-orange-100 transition-colors">Study</Link>
-                                    {/* --- ADDED QUIZ BUTTON HERE --- */}
                                     <Link to={`/quiz/${deck.id}`} className="text-xs px-3 py-1.5 text-yellow-700 bg-yellow-50 rounded-md hover:bg-yellow-100 transition-colors">Quiz</Link>
                                 </div>
                             </CardContent>
