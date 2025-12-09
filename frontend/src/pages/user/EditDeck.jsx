@@ -4,7 +4,7 @@ import { flashcardService } from '../../services/flashcardService';
 import { useUser } from '../../contexts/UserContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
-import { FlashcardFormEditor, DeckInfoForm } from '../../components/shared/FlashcardFormEditor';
+import { FlashcardFormEditor } from '../../components/shared/FlashcardFormEditor';
 import LoadingState from '../../components/shared/LoadingState';
 import AlertMessage from '../../components/shared/AlertMessage';
 import Button from '../../components/ui/button';

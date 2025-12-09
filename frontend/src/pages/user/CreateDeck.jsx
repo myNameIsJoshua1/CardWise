@@ -4,7 +4,6 @@ import { flashcardService } from '../../services/flashcardService';
 import { achievementService } from '../../services/achievementService';
 import { useUser } from '../../contexts/UserContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
 import AchievementNotification from '../../components/AchievementNotification';
 import { FlashcardFormEditor, DeckInfoForm } from '../../components/shared/FlashcardFormEditor';
 import AlertMessage from '../../components/shared/AlertMessage';

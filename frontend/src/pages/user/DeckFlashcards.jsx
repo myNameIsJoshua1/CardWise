@@ -6,7 +6,6 @@ import LoadingState from '../../components/shared/LoadingState';
 import ErrorState from '../../components/shared/ErrorState';
 import PageHeader from '../../components/shared/PageHeader';
 import EmptyStateCard from '../../components/shared/EmptyStateCard';
-import Button from '../../components/ui/button';
 
 const DeckFlashcards = ({ user }) => {
     const { deckId } = useParams();

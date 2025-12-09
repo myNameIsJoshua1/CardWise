@@ -27,7 +27,6 @@ const StudyDeck = () => {
         cardsLearned,
         achievement,
         currentFlashcard,
-        progressPercentage,
         handleNext,
         handlePrevious,
         toggleFlip,
