@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { flashcardService } from '../../services/flashcardService';
-import { useUser } from '../../contexts/UserContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useAuthUser } from '../../hooks/useAuthUser';
+import { useDeckEditor } from '../../hooks/useDeckEditor';
+import { updateDeckWithFlashcards } from '../../utils/deckUpdateHelper';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
 import { FlashcardFormEditor } from '../../components/shared/FlashcardFormEditor';
 import LoadingState from '../../components/shared/LoadingState';
@@ -12,146 +13,33 @@ import Button from '../../components/ui/button';
 const EditDeck = () => {
     const { deckId } = useParams();
     const navigate = useNavigate();
-    const { user: contextUser } = useUser();
     const { styles } = useTheme();
-    const isDarkMode = styles.background && (styles.background.includes('slate-900') || styles.background.includes('gray-900'));
-    const [user, setUser] = useState(contextUser);
+    const { getUserId } = useAuthUser();
+    const userId = getUserId();
     
-    const [isLoading, setIsLoading] = useState(true);
+    const {
+        isLoading,
+        deckData,
+        originalFlashcards,
+        error: loadError,
+        handleDeckChange,
+        handleFlashcardChange,
+        addFlashcard,
+        removeFlashcard,
+        validateDeck
+    } = useDeckEditor(deckId, userId);
+    
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-    
-    // Initialize deck data
-    const [deckData, setDeckData] = useState({
-        title: '',
-        description: '',
-        category: '',
-        flashcards: []
-    });
-    
-    // Track original flashcards for comparison
-    const [originalFlashcards, setOriginalFlashcards] = useState([]);
+    const isDarkMode = styles.background && (styles.background.includes('slate-900') || styles.background.includes('gray-900'));
 
-    // Ensure we have user data - fallback to localStorage if needed
+    // Redirect if load error indicates permission issue
     useEffect(() => {
-        if (!contextUser) {
-            try {
-                const storedUser = localStorage.getItem('user');
-                if (storedUser) {
-                    setUser(JSON.parse(storedUser));
-                }
-            } catch (err) {
-                console.error('Failed to parse user from localStorage:', err);
-            }
-        } else {
-            setUser(contextUser);
+        if (loadError && loadError.includes("permission")) {
+            setTimeout(() => navigate('/dashboard'), 2000);
         }
-    }, [contextUser]);
-
-    // Verify authentication and fetch deck data
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        const userData = localStorage.getItem('user');
-        
-        if (!token || !userData) {
-            navigate('/login');
-            return;
-        }
-        
-        const fetchDeckData = async () => {
-            if (!deckId) return;
-            
-            try {
-                setIsLoading(true);
-                setError('');
-                
-                // Fetch deck info
-                const deckInfo = await flashcardService.getDeck(deckId);
-                
-                if (!deckInfo) {
-                    setError("Deck not found");
-                    return;
-                }
-                
-                // Check if user owns this deck
-                const userId = user?.id || user?.userId;
-                if (deckInfo.userId !== userId) {
-                    setError("You don't have permission to edit this deck");
-                    setTimeout(() => navigate('/dashboard'), 2000);
-                    return;
-                }
-                
-                // Fetch flashcards for this deck
-                const flashcards = await flashcardService.getFlashcards(deckId);
-                
-                // Set deck data
-                setDeckData({
-                    title: deckInfo.title || '',
-                    description: deckInfo.description || '',
-                    category: deckInfo.category || '',
-                    flashcards: flashcards.length > 0 ? flashcards : [
-                        { term: '', definition: '' }
-                    ]
-                });
-                
-                // Store original flashcards for comparison
-                setOriginalFlashcards(flashcards);
-                
-            } catch (error) {
-                console.error('Failed to fetch deck data:', error);
-                setError('Failed to load deck. Please try again.');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        
-        fetchDeckData();
-    }, [deckId, navigate, user]);
-
-    // Handle input change for deck information
-    const handleDeckChange = (e) => {
-        const { name, value } = e.target;
-        setDeckData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
-    // Handle flashcard changes
-    const handleFlashcardChange = (index, field, value) => {
-        const updatedFlashcards = [...deckData.flashcards];
-        updatedFlashcards[index] = {
-            ...updatedFlashcards[index],
-            [field]: value
-        };
-        setDeckData(prev => ({
-            ...prev,
-            flashcards: updatedFlashcards
-        }));
-    };
-
-    // Add a new empty flashcard
-    const addFlashcard = () => {
-        setDeckData(prev => ({
-            ...prev,
-            flashcards: [...prev.flashcards, { term: '', definition: '' }]
-        }));
-    };
-
-    // Remove a flashcard
-    const removeFlashcard = (index) => {
-        if (deckData.flashcards.length <= 1) {
-            setError('You need at least one flashcard');
-            return;
-        }
-
-        const updatedFlashcards = deckData.flashcards.filter((_, i) => i !== index);
-        setDeckData(prev => ({
-            ...prev,
-            flashcards: updatedFlashcards
-        }));
-    };
+    }, [loadError, navigate]);
 
     // Save the updated deck
     const handleSubmit = async (e) => {
@@ -161,74 +49,21 @@ const EditDeck = () => {
         setSuccess('');
 
         try {
-            // Validate deck data
-            if (!deckData.title.trim()) {
-                throw new Error('Title is required');
-            }
-
-            // Validate flashcards - filter valid ones
-            const validFlashcards = deckData.flashcards.filter(card => 
-                card.term.trim() && card.definition.trim()
-            );
-
-            if (validFlashcards.length === 0) {
-                throw new Error('Please create at least one flashcard with both question and answer');
-            }
-
-            // Get user ID
-            const userId = user?.id || user?.userId;
             if (!userId) {
                 throw new Error('User ID not available');
             }
 
-            // Update the deck
-            await flashcardService.updateDeck(deckId, {
-                title: deckData.title,
-                description: deckData.description,
-                category: deckData.category,
-                userId: userId
-            });
-            
-            // Organize flashcards into categories
-            const existingIds = new Set(originalFlashcards.map(card => card.id));
-            const updatedIds = new Set(validFlashcards.filter(card => card.id).map(card => card.id));
-            
-            // Create new flashcards
-            const createPromises = validFlashcards
-                .filter(card => !card.id)
-                .map(card => {
-                    return flashcardService.createFlashcard({
-                        deckId: deckId,
-                        term: card.term,
-                        definition: card.definition,
-                        learned: false,
-                        userId: userId
-                    });
-                });
-            
-            // Update existing flashcards
-            const updatePromises = validFlashcards
-                .filter(card => card.id && existingIds.has(card.id))
-                .map(card => {
-                    return flashcardService.updateFlashcard(card.id, {
-                        term: card.term,
-                        definition: card.definition,
-                        deckId: deckId,
-                        userId: userId
-                    });
-                });
-            
-            // Delete removed flashcards
-            const deletePromises = originalFlashcards
-                .filter(card => !updatedIds.has(card.id))
-                .map(card => flashcardService.deleteFlashcard(card.id));
-            
-            // Execute all operations
-            await Promise.all([
-                ...createPromises,
-                ...updatePromises,
-                ...deletePromises
-            ]);
+            // Validate deck and get valid flashcards
+            const validFlashcards = validateDeck();
+
+            // Update deck and flashcards
+            await updateDeckWithFlashcards(
+                deckId,
+                deckData,
+                validFlashcards,
+                originalFlashcards,
+                userId
+            );
             
             setSuccess('Your flashcard deck has been updated successfully!');
             
@@ -241,6 +76,14 @@ const EditDeck = () => {
             setError(err.message || 'Failed to update deck. Please try again.');
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleRemoveFlashcard = (index) => {
+        try {
+            removeFlashcard(index);
+        } catch (err) {
+            setError(err.message);
         }
     };
 
@@ -260,6 +103,7 @@ const EditDeck = () => {
                 </div>
 
                 {error && <AlertMessage type="error" message={error} />}
+                {loadError && <AlertMessage type="error" message={loadError} />}
                 {success && <AlertMessage type="success" message={success} />}
 
                 <form onSubmit={handleSubmit} className="space-y-8">
@@ -341,7 +185,7 @@ const EditDeck = () => {
                         flashcards={deckData.flashcards}
                         onChange={handleFlashcardChange}
                         onAdd={addFlashcard}
-                        onRemove={removeFlashcard}
+                        onRemove={handleRemoveFlashcard}
                         styles={styles}
                     />
 
